@@ -1,0 +1,71 @@
+{
+    "name": "cosmic-cursor",
+    "displayName": "Manta's Cosmic Cursor",
+    "description": "Move cursor .",
+    "version": "0.0.0",
+    "publisher": "thisismanta",
+    "categories": [
+        "Keymaps",
+        "Other"
+    ],
+    "keywords": [
+        "cursor"
+    ],
+    "repository": {
+        "url": "https://github.com/ThisIsManta/vscode-cosmic-cursor"
+    },
+    "bugs": {
+        "url": "https://github.com/ThisIsManta/vscode-cosmic-cursor/issues"
+    },
+    "galleryBanner": {
+        "color": "#ffea00",
+        "theme": "light"
+    },
+    "engines": {
+        "vscode": "^1.12.0"
+    },
+    "activationEvents": [
+        "*"
+    ],
+    "main": "./dist/extension",
+    "contributes": {
+        "commands": [
+            {
+                "command": "cosmicCursor.openRecentEditor",
+                "title": "Cosmic Cursor: Open Recent Editor"
+            }
+        ],
+        "configuration": {
+            "title": "Cosmic Cursor"
+        },
+        "keybindings": [
+            {
+                "command": "cosmicCursor.moveCursorUp",
+                "key": "ctrl+up",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "cosmicCursor.moveCursorDown",
+                "key": "ctrl+down",
+                "when": "editorTextFocus"
+            }
+        ]
+    },
+    "scripts": {
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "compile": "tsc --watch --project ./",
+        "vscode:prepublish": "tsc --skipLibCheck --project ./",
+        "version": "vsce publish",
+        "postversion": "git push --tags --quiet origin master:master"
+    },
+    "devDependencies": {
+        "@types/lodash": "^4.14.73",
+        "@types/node": "^6.0.86",
+        "@types/typescript": "^2.0.0",
+        "vscode": "^1.1.4"
+    },
+    "dependencies": {
+        "lodash": "^4.17.4",
+        "typescript": "~2.5.3"
+    }
+}

@@ -1,0 +1,7 @@
+.gitignore
+.vscode/**
+.vscode-test/**
+edge
+test
+**/*.map
+tsconfig.json
