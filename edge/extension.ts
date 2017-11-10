@@ -1,36 +1,46 @@
-import * as fp from 'path'
-import * as fs from 'fs'
-import * as os from 'os'
 import * as _ from 'lodash'
 import * as vscode from 'vscode'
+
+import { cursorWordLeft, cursorWordRight } from './cursors'
+import { openSimilar } from './files'
 
 let openingEditors: Array<vscode.TextEditor> = []
 
 export function activate(context: vscode.ExtensionContext) {
-    // let rootConfig: RootConfigurations
-
-    function initialize() {
-        // rootConfig = vscode.workspace.getConfiguration().get('cosmicCursor')
-    }
-
-    initialize()
-    vscode.workspace.onDidChangeConfiguration(initialize)
-
-    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.moveCursorUp', () => {
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorUp', () => {
         vscode.commands.executeCommand('cursorMove', {
+            to: 'up',
             value: 3,
             by: 'wrappedLine',
-            to: 'up',
             select: false,
         })
     }))
 
-    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.moveCursorDown', () => {
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorDown', () => {
         vscode.commands.executeCommand('cursorMove', {
+            to: 'down',
             value: 3,
             by: 'wrappedLine',
-            to: 'down',
             select: false,
+        })
+    }))
+
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordLeft', cursorWordLeft(false)))
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordLeftSelect', cursorWordLeft(true)))
+
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordRight', cursorWordRight(false)))
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordRightSelect', cursorWordRight(true)))
+
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.deleteLeftStart', () => {
+        if (!vscode.window.activeTextEditor) {
+            return null
+        }
+
+        vscode.window.activeTextEditor.edit(edit => {
+            edit.delete(new vscode.Range(
+                vscode.window.activeTextEditor.selection.active.with({ character: 0 }),
+                vscode.window.activeTextEditor.selection.active,
+            ))
         })
     }))
 
@@ -52,48 +62,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }))
 
-    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.openSimilar', async () => {
-        if (!vscode.window.activeTextEditor) {
-            return null
-        }
-
-        const fileLink = vscode.window.activeTextEditor.document.uri
-        const rootLink = vscode.workspace.getWorkspaceFolder(fileLink)
-        if (!rootLink) {
-            return null
-        }
-
-        const filePath = vscode.window.activeTextEditor.document.uri.fsPath
-        const fileName = fp.basename(filePath)
-        if (fileName.startsWith('.') || fileName.includes('.') === false) {
-            return null
-        }
-
-        const relaPath = filePath.substring(rootLink.uri.fsPath.length)
-        const dirxPath = fp.dirname(relaPath)
-        const lazyName = fileName.replace(/\..+/, '')
-        const lazyPath = (dirxPath + '/' + lazyName).replace(/\\/g, '/').replace(/^\//, '')
-
-        const fileList = await vscode.workspace.findFiles(lazyPath + '.*')
-        const selxRank = fileList.findIndex(nextLink => nextLink.fsPath === fileLink.fsPath)
-        if (selxRank >= 0) {
-            const nextLink = fileList.concat(fileList)[selxRank + 1]
-            vscode.window.showTextDocument(nextLink)
-        }
-    }))
-
-    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.deleteLeftUntilStart', () => {
-        if (!vscode.window.activeTextEditor) {
-            return null
-        }
-
-        vscode.window.activeTextEditor.edit(edit => {
-            edit.delete(new vscode.Range(
-                vscode.window.activeTextEditor.selection.active.with({ character: 0 }),
-                vscode.window.activeTextEditor.selection.active
-            ))
-        })
-    }))
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.openSimilar', openSimilar))
 }
 
 export function deactivate() {

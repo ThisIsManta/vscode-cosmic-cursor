@@ -41,19 +41,31 @@
         },
         "keybindings": [
             {
-                "command": "cosmicCursor.moveCursorUp"
+                "command": "cosmicCursor.cursorUp"
             },
             {
-                "command": "cosmicCursor.moveCursorDown"
+                "command": "cosmicCursor.cursorDown"
+            },
+            {
+                "command": "cosmicCursor.cursorWordLeft"
+            },
+            {
+                "command": "cosmicCursor.cursorWordLeftSelect"
+            },
+            {
+                "command": "cosmicCursor.cursorWordRight"
+            },
+            {
+                "command": "cosmicCursor.cursorWordRightSelect"
+            },
+            {
+                "command": "cosmicCursor.deleteLeftStart"
             },
             {
                 "command": "cosmicCursor.openRecent"
             },
             {
                 "command": "cosmicCursor.openSimilar"
-            },
-            {
-                "command": "cosmicCursor.deleteLeftUntilStart"
             }
         ]
     },
