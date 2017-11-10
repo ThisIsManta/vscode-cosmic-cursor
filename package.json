@@ -17,12 +17,13 @@
     "bugs": {
         "url": "https://github.com/ThisIsManta/vscode-cosmic-cursor/issues"
     },
+    "icon": "docs/logo.png",
     "galleryBanner": {
         "color": "#ffea00",
         "theme": "light"
     },
     "engines": {
-        "vscode": "^1.12.0"
+        "vscode": "^1.18.0"
     },
     "activationEvents": [
         "*"
@@ -40,14 +41,10 @@
         },
         "keybindings": [
             {
-                "command": "cosmicCursor.moveCursorUp",
-                "key": "ctrl+up",
-                "when": "editorTextFocus"
+                "command": "cosmicCursor.moveCursorUp"
             },
             {
-                "command": "cosmicCursor.moveCursorDown",
-                "key": "ctrl+down",
-                "when": "editorTextFocus"
+                "command": "cosmicCursor.moveCursorDown"
             }
         ]
     },
@@ -62,10 +59,10 @@
         "@types/lodash": "^4.14.73",
         "@types/node": "^6.0.86",
         "@types/typescript": "^2.0.0",
-        "vscode": "^1.1.4"
+        "vscode": "^1.1.6"
     },
     "dependencies": {
         "lodash": "^4.17.4",
-        "typescript": "~2.5.3"
+        "typescript": "~2.6.1"
     }
 }
