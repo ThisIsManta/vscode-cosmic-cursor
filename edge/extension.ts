@@ -81,6 +81,19 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.showTextDocument(nextLink)
         }
     }))
+
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.deleteLeftUntilStart', () => {
+        if (!vscode.window.activeTextEditor) {
+            return null
+        }
+
+        vscode.window.activeTextEditor.edit(edit => {
+            edit.delete(new vscode.Range(
+                vscode.window.activeTextEditor.selection.active.with({ character: 0 }),
+                vscode.window.activeTextEditor.selection.active
+            ))
+        })
+    }))
 }
 
 export function deactivate() {

@@ -51,6 +51,9 @@
             },
             {
                 "command": "cosmicCursor.openSimilar"
+            },
+            {
+                "command": "cosmicCursor.deleteLeftUntilStart"
             }
         ]
     },
