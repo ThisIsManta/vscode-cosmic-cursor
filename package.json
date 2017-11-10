@@ -45,6 +45,12 @@
             },
             {
                 "command": "cosmicCursor.moveCursorDown"
+            },
+            {
+                "command": "cosmicCursor.openRecent"
+            },
+            {
+                "command": "cosmicCursor.openSimilar"
             }
         ]
     },
