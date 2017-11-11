@@ -5,10 +5,33 @@ import * as ts from 'typescript'
 import { fail } from 'assert';
 
 export const selectCursorByBlockForTypeScript = (editor: vscode.TextEditor) => {
-	const rootNode = ts.createSourceFile(fp.basename(editor.document.fileName), editor.document.getText(), ts.ScriptTarget.ES2015)
+	let rootNode: ts.Node
+	if (/(java|type)script(react)?/i.test(editor.document.languageId)) {
+		rootNode = ts.createSourceFile(fp.basename(editor.document.fileName), editor.document.getText(), ts.ScriptTarget.ES2015)
 
-	const tracedRangeList = travel(rootNode, editor.document, editor.selection)
-	const trimmedRangeList = tracedRangeList.map(range => {
+	} else if (editor.document.languageId === 'json') {
+		rootNode = ts.parseJsonText(fp.basename(editor.document.fileName), editor.document.getText()).jsonObject
+	}
+
+	if (!rootNode) {
+		return null
+	}
+
+	// Travel through the given root node and return an array of range that fall into the given selection
+	// Note that the array is sorted in which the bigger range always come first.
+	const matchingRangeList = travel(rootNode, editor.document, editor.selection)
+
+	// Add the root node range to the results
+	// Note that this is a special case for JSON file as the node returned from "parseJsonText" function has an invalid "pos" and/or "end" property
+	if (editor.document.languageId === 'json') {
+		matchingRangeList.unshift(new vscode.Range(
+			editor.document.positionAt(rootNode.pos),
+			editor.document.positionAt(rootNode.end),
+		))
+	}
+
+	// Trim the beginning white-spaces and new-lines for some ranges
+	const trimmedMatchingRangeList = matchingRangeList.map(range => {
 		const fullText = editor.document.getText(range)
 		const trimText = _.trimStart(fullText)
 		if (fullText.length !== trimText.length) {
@@ -20,7 +43,9 @@ export const selectCursorByBlockForTypeScript = (editor: vscode.TextEditor) => {
 
 		return range
 	})
-	const selectedRange = _.findLast(trimmedRangeList, range => editor.selection.isEqual(range) === false)
+
+	// Select the smallest range that is bigger than the current selection
+	const selectedRange = _.findLast(trimmedMatchingRangeList, range => editor.selection.isEqual(range) === false)
 	if (selectedRange) {
 		return new vscode.Selection(
 			selectedRange.end,
@@ -31,17 +56,17 @@ export const selectCursorByBlockForTypeScript = (editor: vscode.TextEditor) => {
 	return null
 }
 
-const travel = (givenNode: ts.Node, document: vscode.TextDocument, selection: vscode.Selection, intermediateResults: Array<vscode.Range> = []) => {
+const travel = (givenNode: ts.Node, document: vscode.TextDocument, selection: vscode.Selection, matchingRangeList: Array<vscode.Range> = []) => {
 	givenNode.forEachChild(childNode => {
 		let range = new vscode.Range(
 			document.positionAt(childNode.pos),
 			document.positionAt(childNode.end),
 		)
 		if (range.contains(selection)) {
-			intermediateResults.push(range)
-			travel(childNode, document, selection, intermediateResults)
+			matchingRangeList.push(range)
+			travel(childNode, document, selection, matchingRangeList)
 		}
 	})
 
-	return intermediateResults
+	return matchingRangeList
 }

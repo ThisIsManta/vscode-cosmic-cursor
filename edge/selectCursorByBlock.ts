@@ -34,12 +34,10 @@ export const selectCursorByBlock = (cursorPairHistory: Array<vscode.Selection>) 
 		cursorPairHistory.push(editor.selection)
 	}
 
-	if (/(java|type)script(react)?/i.test(editor.document.languageId)) {
-		const newSelection = selectCursorByBlockForTypeScript(editor)
-		if (newSelection) {
-			editor.selection = newSelection
-			cursorPairHistory.push(newSelection)
-		}
+	const newSelection = selectCursorByBlockForTypeScript(editor)
+	if (newSelection) {
+		editor.selection = newSelection
+		cursorPairHistory.push(newSelection)
 		return null
 	}
 
