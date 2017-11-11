@@ -1,6 +1,8 @@
 import * as _ from 'lodash'
 import * as vscode from 'vscode'
 
+import { selectCursorByBlockForTypeScript } from './selectCursorByBlockForTypeScript'
+
 interface Sign {
 	char: string
 	rank: number
@@ -30,6 +32,15 @@ export const selectCursorByBlock = (cursorPairHistory: Array<vscode.Selection>) 
 
 	if (cursorPairHistory.length === 0) {
 		cursorPairHistory.push(editor.selection)
+	}
+
+	if (/(java|type)script(react)?/i.test(editor.document.languageId)) {
+		const newSelection = selectCursorByBlockForTypeScript(editor)
+		if (newSelection) {
+			editor.selection = newSelection
+			cursorPairHistory.push(newSelection)
+		}
+		return null
 	}
 
 	if (editor.selection.active.line === editor.selection.anchor.line) {
