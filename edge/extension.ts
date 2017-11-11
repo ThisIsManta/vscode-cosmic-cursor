@@ -1,7 +1,7 @@
 import * as _ from 'lodash'
 import * as vscode from 'vscode'
 
-import { cursorJump, cursorPair, cursorWordLeft, cursorWordRight } from './cursors'
+import { cursorJump, cursorPairUp, cursorWordLeft, cursorWordRight } from './cursors'
 import { openSimilar, openPackage } from './files'
 
 let openingEditors: Array<vscode.TextEditor> = []
@@ -10,8 +10,8 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorJumpUp', cursorJump(-1)))
     context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorJumpDown', cursorJump(+1)))
 
-    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorPairUp', cursorPair))
-    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorPairDown', cursorPair))
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorPairUp', cursorPairUp))
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorPairDown', cursorPairUp))
 
     context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordLeft', cursorWordLeft(false)))
     context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordLeftSelect', cursorWordLeft(true)))
