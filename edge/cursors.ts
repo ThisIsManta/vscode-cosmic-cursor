@@ -3,7 +3,7 @@ import * as vscode from 'vscode'
 import { activate } from './extension';
 import { log } from 'util';
 
-export const cursorJump = (direction: number) => () => {
+export const moveCursor = (direction: number) => () => {
 	const editor = vscode.window.activeTextEditor
 	let lineRank = editor.selection.active.line
 
@@ -62,8 +62,7 @@ const findPair = (charList: Array<Sign>, openChar: string, closChar: string) => 
 	return null
 }
 
-
-export const cursorPairUp = (cursorPairHistory: Array<vscode.Selection>) => () => {
+export const selectCursorByBlock = (cursorPairHistory: Array<vscode.Selection>) => () => {
 	const editor = vscode.window.activeTextEditor
 
 	if (cursorPairHistory.length === 0) {
@@ -165,7 +164,7 @@ export const cursorPairUp = (cursorPairHistory: Array<vscode.Selection>) => () =
 	}
 }
 
-export const cursorPairDown = (cursorPairHistory: Array<vscode.Selection>) => () => {
+export const shrinkCursorByBlock = (cursorPairHistory: Array<vscode.Selection>) => () => {
 	const editor = vscode.window.activeTextEditor
 
 	while (cursorPairHistory.length > 0) {
@@ -177,7 +176,7 @@ export const cursorPairDown = (cursorPairHistory: Array<vscode.Selection>) => ()
 	}
 }
 
-export const cursorWordLeft = (select: boolean) => async () => {
+export const moveOrSelectCursorLeftByWord = (select: boolean) => async () => {
 	const editor = vscode.window.activeTextEditor
 	let lineRank = editor.selection.active.line
 	let lineText = editor.document.getText(new vscode.Range(
@@ -267,7 +266,7 @@ export const cursorWordLeft = (select: boolean) => async () => {
 	}
 }
 
-export const cursorWordRight = (select: boolean) => async () => {
+export const moveOrSelectCursorRightByWord = (select: boolean) => async () => {
 	const editor = vscode.window.activeTextEditor
 	let lineRank = editor.selection.active.line
 	let lineText = editor.document.getText(new vscode.Range(

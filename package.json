@@ -41,22 +41,22 @@
         },
         "keybindings": [
             {
-                "command": "cosmicCursor.cursorJumpUp",
+                "command": "cosmicCursor.cursorUp",
                 "key": "ctrl+up",
                 "when": "editorTextFocus"
             },
             {
-                "command": "cosmicCursor.cursorPairUp",
-                "key": "ctrl+shift+up",
-                "when": "editorTextFocus"
-            },
-            {
-                "command": "cosmicCursor.cursorJumpDown",
+                "command": "cosmicCursor.cursorDown",
                 "key": "ctrl+down",
                 "when": "editorTextFocus"
             },
             {
-                "command": "cosmicCursor.cursorPairDown",
+                "command": "cosmicCursor.cursorUpSelect",
+                "key": "ctrl+shift+up",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "cosmicCursor.cursorDownSelect",
                 "key": "ctrl+shift+down",
                 "when": "editorTextFocus"
             },
