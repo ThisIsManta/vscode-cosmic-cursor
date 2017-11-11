@@ -63,6 +63,8 @@ export function activate(context: vscode.ExtensionContext) {
     }))
 
     context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.openSimilar', openSimilar))
+
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.openPackage', openPackage))
 }
 
 export function deactivate() {

@@ -79,6 +79,9 @@
             },
             {
                 "command": "cosmicCursor.openSimilar"
+            },
+            {
+                "command": "cosmicCursor.openPackage"
             }
         ]
     },
