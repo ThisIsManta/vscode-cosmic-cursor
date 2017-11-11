@@ -62,8 +62,13 @@ const findPair = (charList: Array<Sign>, openChar: string, closChar: string) => 
 	return null
 }
 
-export const cursorPairUp = () => {
+
+export const cursorPairUp = (cursorPairHistory: Array<vscode.Selection>) => () => {
 	const editor = vscode.window.activeTextEditor
+
+	if (cursorPairHistory.length === 0) {
+		cursorPairHistory.push(editor.selection)
+	}
 
 	if (editor.selection.active.line === editor.selection.anchor.line) {
 		const lineRank = editor.selection.active.line
@@ -80,6 +85,7 @@ export const cursorPairUp = () => {
 					new vscode.Position(lineRank, editor.selection.active.character + wordWise[1].length),
 					new vscode.Position(lineRank, editor.selection.active.character - wordWise[0].length),
 				)
+				cursorPairHistory.push(editor.selection)
 				return null
 			}
 		}
@@ -95,6 +101,7 @@ export const cursorPairUp = () => {
 				new vscode.Position(lineRank, editor.selection.end.character + operWise[1].length),
 				new vscode.Position(lineRank, editor.selection.start.character - operWise[0].length),
 			)
+			cursorPairHistory.push(editor.selection)
 			return null
 		}
 	}
@@ -154,6 +161,19 @@ export const cursorPairUp = () => {
 		}
 
 		editor.selection = newSelection
+		cursorPairHistory.push(editor.selection)
+	}
+}
+
+export const cursorPairDown = (cursorPairHistory: Array<vscode.Selection>) => () => {
+	const editor = vscode.window.activeTextEditor
+
+	while (cursorPairHistory.length > 0) {
+		const oldSelection = cursorPairHistory.pop()
+		if (oldSelection.isEqual(editor.selection) === false) {
+			editor.selection = oldSelection
+			break
+		}
 	}
 }
 
