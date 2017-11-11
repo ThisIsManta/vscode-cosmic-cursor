@@ -1,11 +1,95 @@
 import * as _ from 'lodash'
 import * as vscode from 'vscode'
+import { activate } from './extension';
 
-export const cursorWordLeft = (select: boolean) => async () => {
-	if (!vscode.window.activeTextEditor) {
-		return null
+/* const findPair = (text: string, char: string) {
+
+} */
+
+export const cursorJump = (direction: number) => () => {
+	const editor = vscode.window.activeTextEditor
+	let lineRank = editor.selection.active.line
+
+	const charTest = /\w/
+
+	let lineLeap = 0
+	let stepLong = 3
+	while (true) {
+		if (direction < 0 && lineRank === 0 || direction > 0 && lineRank === editor.document.lineCount - 1) {
+			break
+		}
+
+		lineRank += direction
+		const lineText = editor.document.lineAt(lineRank).text
+		lineLeap += 1
+
+		if (charTest.test(lineText)) {
+			stepLong -= 1
+			if (stepLong === 0) {
+				break
+			}
+		}
 	}
 
+	if (lineLeap > 0) {
+		return vscode.commands.executeCommand('cursorMove', {
+			to: direction < 0 ? 'up' : 'down',
+			value: lineLeap,
+			by: 'line',
+			select: false,
+		})
+	}
+}
+
+export const cursorPair = async () => {
+	const editor = vscode.window.activeTextEditor
+	let lineRank = editor.selection.active.line
+	let lineText = editor.document.lineAt(editor.selection.active.line).text
+
+	/* if (select) {
+		if (editor.selection.active.isEqual(editor.selection.anchor)) {
+			await vscode.commands.executeCommand('cursorMove', {
+				to: 'right',
+				value: lineText.length - editor.selection.active.character,
+				by: 'character',
+				select: false,
+			})
+
+			return vscode.commands.executeCommand('cursorMove', {
+				to: 'left',
+				value: _.trimStart(lineText).length,
+				by: 'character',
+				select: true,
+			})
+		}
+	} */
+
+	const lineWise = [
+		lineText.substring(0, editor.selection.active.character),
+		lineText.substring(editor.selection.active.character),
+	]
+
+	const signList = lineWise
+		.map(line => line
+			.split('')
+			.map((char, rank) => /\W/.test(char)
+				? { char, rank }
+				: null
+			)
+			.filter(item => item !== null)
+			/* .map((item, numb, list) => {
+				const prev = list[numb - 1]
+				if (prev && prev.char === '\\') {
+					return null
+				}
+				return item
+			}) */
+			.filter(item => item !== null)
+		)
+
+}
+
+export const cursorWordLeft = (select: boolean) => async () => {
 	const editor = vscode.window.activeTextEditor
 	let lineRank = editor.selection.active.line
 	let lineText = editor.document.getText(new vscode.Range(
@@ -59,7 +143,7 @@ export const cursorWordLeft = (select: boolean) => async () => {
 	while (true) {
 		const wordList = _.words(lineText)
 		if (wordList.length === 0) {
-			if (lineRank === 1) {
+			if (lineRank === 0) {
 				return null
 
 			} else {
@@ -96,10 +180,6 @@ export const cursorWordLeft = (select: boolean) => async () => {
 }
 
 export const cursorWordRight = (select: boolean) => async () => {
-	if (!vscode.window.activeTextEditor) {
-		return null
-	}
-
 	const editor = vscode.window.activeTextEditor
 	let lineRank = editor.selection.active.line
 	let lineText = editor.document.getText(new vscode.Range(
@@ -152,7 +232,7 @@ export const cursorWordRight = (select: boolean) => async () => {
 	while (true) {
 		const wordList = _.words(lineText)
 		if (wordList.length === 0) {
-			if (lineRank === editor.document.lineCount) {
+			if (lineRank === editor.document.lineCount - 1) {
 				return null
 
 			} else {

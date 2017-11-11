@@ -1,7 +1,7 @@
 {
     "name": "cosmic-cursor",
     "displayName": "Manta's Cosmic Cursor",
-    "description": "Move cursor .",
+    "description": "Move cursor brilliantly.",
     "version": "0.0.0",
     "publisher": "thisismanta",
     "categories": [
@@ -41,12 +41,23 @@
         },
         "keybindings": [
             {
-                "command": "cosmicCursor.cursorUp",
-                "key": "ctrl+up"
+                "command": "cosmicCursor.cursorJumpUp",
+                "key": "ctrl+up",
+                "when": "editorTextFocus"
             },
             {
-                "command": "cosmicCursor.cursorDown",
+                "command": "cosmicCursor.cursorPairUp",
+                "key": "ctrl+shift+up",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "cosmicCursor.cursorJumpDown",
                 "key": "ctrl+down",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "cosmicCursor.cursorPairDown",
+                "key": "ctrl+shift+down",
                 "when": "editorTextFocus"
             },
             {
