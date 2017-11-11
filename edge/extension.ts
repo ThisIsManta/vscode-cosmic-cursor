@@ -1,7 +1,9 @@
 import * as _ from 'lodash'
 import * as vscode from 'vscode'
 
-import { moveCursor, selectCursorByBlock, shrinkCursorByBlock, moveOrSelectCursorLeftByWord, moveOrSelectCursorRightByWord } from './cursors'
+import { moveCursor } from './moveCursor'
+import { selectCursorByBlock, shrinkCursorByBlock } from './selectCursorByBlock'
+import { moveOrSelectCursorByWordLeft, moveOrSelectCursorByWordRight } from './moveOrSelectCursorByWord'
 import { openSimilar, openPackage } from './files'
 
 let openingEditors: Array<vscode.TextEditor> = []
@@ -20,11 +22,11 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorUpSelect', selectCursorByBlock(cursorPairHistory)))
     context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorDownSelect', shrinkCursorByBlock(cursorPairHistory)))
 
-    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordLeft', moveOrSelectCursorLeftByWord(false)))
-    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordLeftSelect', moveOrSelectCursorLeftByWord(true)))
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordLeft', moveOrSelectCursorByWordLeft(false)))
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordLeftSelect', moveOrSelectCursorByWordLeft(true)))
 
-    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordRight', moveOrSelectCursorRightByWord(false)))
-    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordRightSelect', moveOrSelectCursorRightByWord(true)))
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordRight', moveOrSelectCursorByWordRight(false)))
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordRightSelect', moveOrSelectCursorByWordRight(true)))
 
     context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.deleteLeftStart', () => {
         if (!vscode.window.activeTextEditor) {
