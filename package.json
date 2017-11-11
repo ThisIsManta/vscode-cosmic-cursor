@@ -41,25 +41,38 @@
         },
         "keybindings": [
             {
-                "command": "cosmicCursor.cursorUp"
+                "command": "cosmicCursor.cursorUp",
+                "key": "ctrl+up"
             },
             {
-                "command": "cosmicCursor.cursorDown"
+                "command": "cosmicCursor.cursorDown",
+                "key": "ctrl+down",
+                "when": "editorTextFocus"
             },
             {
-                "command": "cosmicCursor.cursorWordLeft"
+                "command": "cosmicCursor.cursorWordLeft",
+                "key": "ctrl+left",
+                "when": "editorTextFocus"
             },
             {
-                "command": "cosmicCursor.cursorWordLeftSelect"
+                "command": "cosmicCursor.cursorWordLeftSelect",
+                "key": "ctrl+shift+left",
+                "when": "editorTextFocus"
             },
             {
-                "command": "cosmicCursor.cursorWordRight"
+                "command": "cosmicCursor.cursorWordRight",
+                "key": "ctrl+right",
+                "when": "editorTextFocus"
             },
             {
-                "command": "cosmicCursor.cursorWordRightSelect"
+                "command": "cosmicCursor.cursorWordRightSelect",
+                "key": "ctrl+shift+right",
+                "when": "editorTextFocus"
             },
             {
-                "command": "cosmicCursor.deleteLeftStart"
+                "command": "cosmicCursor.deleteLeftStart",
+                "key": "shift+backspace",
+                "when": "editorTextFocus && !editorReadOnly"
             },
             {
                 "command": "cosmicCursor.openRecent"
