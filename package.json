@@ -30,15 +30,6 @@
     ],
     "main": "./dist/extension",
     "contributes": {
-        "commands": [
-            {
-                "command": "cosmicCursor.openRecentEditor",
-                "title": "Cosmic Cursor: Open Recent Editor"
-            }
-        ],
-        "configuration": {
-            "title": "Cosmic Cursor"
-        },
         "keybindings": [
             {
                 "command": "cosmicCursor.cursorUp",
@@ -84,15 +75,6 @@
                 "command": "cosmicCursor.deleteLeftStart",
                 "key": "shift+backspace",
                 "when": "editorTextFocus && !editorReadOnly"
-            },
-            {
-                "command": "cosmicCursor.openRecent"
-            },
-            {
-                "command": "cosmicCursor.openSimilar"
-            },
-            {
-                "command": "cosmicCursor.openPackage"
             }
         ]
     },
