@@ -12,10 +12,10 @@ export const moveOrSelectCursorByWordLeft = (select: boolean) => async () => {
 	const wordList = _.words(lineText)
 	if (wordList.length === 1) {
 		const wordRank = lineText.lastIndexOf(_.last(wordList))
-		const rank = { start: wordRank, end: wordRank + _.last(wordList).length }
+		const wordSpan = { start: wordRank, end: wordRank + _.last(wordList).length }
 		return vscode.commands.executeCommand('cursorMove', {
 			to: 'left',
-			value: editor.selection.active.character - (rank.end < editor.selection.active.character ? rank.end : rank.start),
+			value: editor.selection.active.character - (wordSpan.end < editor.selection.active.character ? wordSpan.end : wordSpan.start),
 			by: 'character',
 			select,
 		})
@@ -104,7 +104,7 @@ export const moveOrSelectCursorByWordRight = (select: boolean) => async () => {
 		const wordRank = lineText.indexOf(wordList[0])
 		return vscode.commands.executeCommand('cursorMove', {
 			to: 'right',
-			value: wordRank + wordList[0].length,
+			value: wordRank + (wordRank > 0 ? 0 : wordList[0].length),
 			by: 'character',
 			select,
 		})
