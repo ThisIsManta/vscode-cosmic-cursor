@@ -1,6 +1,14 @@
 import * as _ from 'lodash'
 import * as vscode from 'vscode'
 
+const setCursorOrSelection = (lineRank: number, charRank: number, select: boolean) => {
+	const cursor = new vscode.Position(lineRank, charRank)
+	vscode.window.activeTextEditor.selection = new vscode.Selection(
+		select ? vscode.window.activeTextEditor.selection.anchor : cursor,
+		cursor
+	)
+}
+
 export const moveOrSelectCursorByWordLeft = (select: boolean) => async () => {
 	const editor = vscode.window.activeTextEditor
 	let lineRank = editor.selection.active.line
@@ -9,46 +17,14 @@ export const moveOrSelectCursorByWordLeft = (select: boolean) => async () => {
 		editor.selection.active,
 	))
 
-	const wordList = _.words(lineText)
-	if (wordList.length === 1) {
-		const wordRank = lineText.lastIndexOf(_.last(wordList))
-		const wordSpan = { start: wordRank, end: wordRank + _.last(wordList).length }
-		return vscode.commands.executeCommand('cursorMove', {
-			to: 'left',
-			value: editor.selection.active.character - (wordSpan.end < editor.selection.active.character ? wordSpan.end : wordSpan.start),
-			by: 'character',
-			select,
-		})
-
-	} else if (wordList.length > 1) {
-		const rankList = wordList.slice(-2).map((word, numb, list) => {
-			let rank: number
-			if (numb === 0) {
-				const lastWord = list[numb + 1]
-				const lastRank = lineText.lastIndexOf(lastWord)
-				rank = lineText.lastIndexOf(word, lastRank)
-			} else {
-				rank = lineText.lastIndexOf(word)
-			}
-
-			return { start: rank, end: rank + word.length }
-		})
-
-		if (rankList[1].end < editor.selection.active.character) {
-			return vscode.commands.executeCommand('cursorMove', {
-				to: 'left',
-				value: editor.selection.active.character - rankList[1].end,
-				by: 'character',
-				select,
-			})
+	const wordText = _.last(_.words(lineText))
+	if (wordText) {
+		const wordRank = lineText.lastIndexOf(wordText)
+		if (wordRank + wordText.length === editor.selection.active.character) {
+			return setCursorOrSelection(lineRank, wordRank, select)
 
 		} else {
-			return vscode.commands.executeCommand('cursorMove', {
-				to: 'left',
-				value: editor.selection.active.character - Math.max(rankList[0].end, rankList[1].start),
-				by: 'character',
-				select,
-			})
+			return setCursorOrSelection(lineRank, wordRank + wordText.length, select)
 		}
 	}
 
@@ -56,7 +32,7 @@ export const moveOrSelectCursorByWordLeft = (select: boolean) => async () => {
 		const wordList = _.words(lineText)
 		if (wordList.length === 0) {
 			if (lineRank === 0) {
-				return null
+				break
 
 			} else {
 				lineRank -= 1
@@ -65,29 +41,9 @@ export const moveOrSelectCursorByWordLeft = (select: boolean) => async () => {
 			}
 		}
 
-		await vscode.commands.executeCommand('cursorMove', {
-			to: 'up',
-			value: editor.selection.active.line - lineRank,
-			by: 'line',
-			select,
-		})
-
-		const wordRank = lineText.lastIndexOf(_.last(wordList))
-		if (editor.selection.active.character < wordRank) {
-			return vscode.commands.executeCommand('cursorMove', {
-				to: 'right',
-				value: wordRank - editor.selection.active.character,
-				by: 'character',
-				select,
-			})
-		} else if (editor.selection.active.character > wordRank) {
-			return vscode.commands.executeCommand('cursorMove', {
-				to: 'left',
-				value: editor.selection.active.character - wordRank,
-				by: 'character',
-				select,
-			})
-		}
+		const wordText = _.last(wordList)
+		const wordRank = lineText.lastIndexOf(wordText) + wordText.length
+		return setCursorOrSelection(lineRank, wordRank, select)
 	}
 }
 
@@ -99,45 +55,14 @@ export const moveOrSelectCursorByWordRight = (select: boolean) => async () => {
 		editor.document.lineAt(editor.selection.active.line).range.end,
 	))
 
-	const wordList = _.words(lineText)
-	if (wordList.length === 1) {
-		const wordRank = lineText.indexOf(wordList[0])
-		return vscode.commands.executeCommand('cursorMove', {
-			to: 'right',
-			value: wordRank + (wordRank > 0 ? 0 : wordList[0].length),
-			by: 'character',
-			select,
-		})
-
-	} else if (wordList.length > 1) {
-		const rankList = wordList.slice(0, 2).map((word, numb, list) => {
-			let rank: number
-			if (numb === 1) {
-				const lastWord = list[numb - 1]
-				const lastRank = lineText.indexOf(lastWord) + lastWord.length
-				rank = lineText.indexOf(word, lastRank)
-			} else {
-				rank = lineText.indexOf(word)
-			}
-
-			return { start: rank, end: rank + word.length }
-		})
-
-		if (rankList[0].start > 0) {
-			return vscode.commands.executeCommand('cursorMove', {
-				to: 'right',
-				value: rankList[0].start,
-				by: 'character',
-				select,
-			})
+	const wordText = _.first(_.words(lineText))
+	if (wordText) {
+		const wordRank = editor.selection.active.character + lineText.indexOf(wordText)
+		if (wordRank === editor.selection.active.character) {
+			return setCursorOrSelection(lineRank, wordRank + wordText.length, select)
 
 		} else {
-			return vscode.commands.executeCommand('cursorMove', {
-				to: 'right',
-				value: Math.min(rankList[0].end, rankList[1].start),
-				by: 'character',
-				select,
-			})
+			return setCursorOrSelection(lineRank, wordRank, select)
 		}
 	}
 
@@ -145,7 +70,7 @@ export const moveOrSelectCursorByWordRight = (select: boolean) => async () => {
 		const wordList = _.words(lineText)
 		if (wordList.length === 0) {
 			if (lineRank === editor.document.lineCount - 1) {
-				return null
+				break
 
 			} else {
 				lineRank += 1
@@ -154,28 +79,8 @@ export const moveOrSelectCursorByWordRight = (select: boolean) => async () => {
 			}
 		}
 
-		await vscode.commands.executeCommand('cursorMove', {
-			to: 'down',
-			value: lineRank - editor.selection.active.line,
-			by: 'line',
-			select,
-		})
-
-		const wordRank = lineText.indexOf(wordList[0])
-		if (editor.selection.active.character < wordRank) {
-			return vscode.commands.executeCommand('cursorMove', {
-				to: 'right',
-				value: wordRank - editor.selection.active.character,
-				by: 'character',
-				select,
-			})
-		} else if (editor.selection.active.character > wordRank) {
-			return vscode.commands.executeCommand('cursorMove', {
-				to: 'left',
-				value: editor.selection.active.character - wordRank,
-				by: 'character',
-				select,
-			})
-		}
+		const wordText = _.first(wordList)
+		const wordRank = lineText.indexOf(wordText)
+		return setCursorOrSelection(lineRank, wordRank, select)
 	}
 }
