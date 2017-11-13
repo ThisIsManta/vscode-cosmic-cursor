@@ -19,7 +19,7 @@
     },
     "icon": "docs/logo.png",
     "galleryBanner": {
-        "color": "#ffea00",
+        "color": "#ff3d00",
         "theme": "light"
     },
     "engines": {
