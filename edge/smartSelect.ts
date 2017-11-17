@@ -1,7 +1,8 @@
+import * as fp from 'path'
 import * as _ from 'lodash'
 import * as vscode from 'vscode'
-
-import { expandBlockSelectionForTypeScript } from './smartSelectForTypeScript'
+import * as ts from 'typescript'
+import { fail } from 'assert';
 
 interface Sign {
 	char: string
@@ -41,99 +42,7 @@ export const expandBlockSelection = (cursorPairHistory: Array<vscode.Selection>)
 		return null
 	}
 
-	if (editor.selection.active.line === editor.selection.anchor.line) {
-		const lineRank = editor.selection.active.line
-		const lineText = editor.document.lineAt(lineRank).text
-
-		if (editor.selection.active.character === editor.selection.anchor.character) {
-			const wordWise = [
-				lineText.substring(0, editor.selection.active.character).match(/\w+$/),
-				lineText.substring(editor.selection.active.character).match(/^\w+/),
-			].map(text => _.get(text, '0', ''))
-
-			if (wordWise[0] || wordWise[1]) {
-				editor.selection = new vscode.Selection(
-					new vscode.Position(lineRank, editor.selection.active.character + wordWise[1].length),
-					new vscode.Position(lineRank, editor.selection.active.character - wordWise[0].length),
-				)
-				cursorPairHistory.push(editor.selection)
-				return null
-			}
-		}
-
-		const operTest = '~!@#$%^&*-=/|\\'.split('').map(_.escapeRegExp).join('|')
-		const operWise = [
-			lineText.substring(0, editor.selection.start.character).match(new RegExp('(' + operTest + ')$')),
-			lineText.substring(editor.selection.end.character).match(new RegExp('^(' + operTest + ')')),
-		].map(text => _.get(text, '0', ''))
-
-		if (operWise[0] || operWise[1]) {
-			editor.selection = new vscode.Selection(
-				new vscode.Position(lineRank, editor.selection.end.character + operWise[1].length),
-				new vscode.Position(lineRank, editor.selection.start.character - operWise[0].length),
-			)
-			cursorPairHistory.push(editor.selection)
-			return null
-		}
-	}
-
-	const textWise = [
-		editor.document.getText(new vscode.Range(
-			new vscode.Position(0, 0),
-			editor.selection.start,
-		)),
-		editor.document.getText(new vscode.Range(
-			editor.selection.end,
-			editor.document.lineAt(editor.document.lineCount - 1).range.end,
-		)),
-	]
-
-	const signList = ['()', '[]', '{}', '<>', '``', '""', '\'\'']
-	const signTest = new RegExp('(' + _.chain(signList.map(sign => sign.split(''))).flatten().uniq().map(_.escapeRegExp).value().join('|') + ')')
-	const backList = _.chain(textWise[0])
-		.split('')
-		.map((char, rank, list) => signTest.test(char) ? { char, rank } : null)
-		.filter(item => item !== null)
-		.reverse()
-		.map((item, indx) => ({ ...item, indx }))
-		.value()
-	const foreList = _.chain(textWise[1])
-		.split('')
-		.map((char, rank) => signTest.test(char) ? { char, rank } : null)
-		.filter(item => item !== null)
-		.map((item, indx) => ({ ...item, indx }))
-		.value()
-
-	const sortPair = _.chain(signList)
-		.map(sign => [
-			findPair(backList, sign[1], sign[0]),
-			findPair(foreList, sign[0], sign[1]),
-		])
-		.filter(pair => pair[0] && pair[1])
-		.sortBy<Array<Sign>>([
-			pair => Math.min(pair[0].indx, pair[1].indx),
-			pair => signList.findIndex(sign => sign[0] === pair[0]),
-		])
-		.value()
-
-	const selxPair = _.first(sortPair)
-	if (selxPair) {
-		const backLong = textWise[0].length + editor.document.getText(editor.selection).length
-		let newSelection = new vscode.Selection(
-			editor.document.positionAt(backLong + selxPair[1].rank),
-			editor.document.positionAt(selxPair[0].rank + 1),
-		)
-
-		if (editor.selection.isEqual(newSelection)) {
-			newSelection = new vscode.Selection(
-				newSelection.anchor.translate({ characterDelta: +1 }),
-				newSelection.active.translate({ characterDelta: -1 }),
-			)
-		}
-
-		editor.selection = newSelection
-		cursorPairHistory.push(editor.selection)
-	}
+	return vscode.commands.executeCommand('editor.action.smartSelect.grow')
 }
 
 export const shrinkBlockSelection = (cursorPairHistory: Array<vscode.Selection>) => () => {
@@ -146,4 +55,71 @@ export const shrinkBlockSelection = (cursorPairHistory: Array<vscode.Selection>)
 			break
 		}
 	}
+}
+
+export const expandBlockSelectionForTypeScript = (editor: vscode.TextEditor) => {
+	let rootNode: ts.Node
+	if (/(java|type)script(react)?/i.test(editor.document.languageId)) {
+		rootNode = ts.createSourceFile(fp.basename(editor.document.fileName), editor.document.getText(), ts.ScriptTarget.ES2015)
+
+	} else if (editor.document.languageId === 'json') {
+		rootNode = ts.parseJsonText(fp.basename(editor.document.fileName), editor.document.getText()).jsonObject
+	}
+
+	if (!rootNode) {
+		return null
+	}
+
+	// Travel through the given root node and return an array of range that fall into the given selection
+	// Note that the array is sorted in which the bigger range always come first.
+	const matchingRangeList = travel(rootNode, editor.document, editor.selection)
+
+	// Add the root node range to the results
+	// Note that this is a special case for JSON file as the node returned from "parseJsonText" function has an invalid "pos" and/or "end" property
+	if (editor.document.languageId === 'json') {
+		matchingRangeList.unshift(new vscode.Range(
+			editor.document.positionAt(rootNode.pos),
+			editor.document.positionAt(rootNode.end),
+		))
+	}
+
+	// Trim the beginning white-spaces and new-lines for some ranges
+	const trimmedMatchingRangeList = matchingRangeList.map(range => {
+		const fullText = editor.document.getText(range)
+		const trimText = _.trimStart(fullText)
+		if (fullText.length !== trimText.length) {
+			return new vscode.Range(
+				editor.document.positionAt(editor.document.offsetAt(range.start) + fullText.length - trimText.length),
+				range.end,
+			)
+		}
+
+		return range
+	})
+
+	// Select the smallest range that is bigger than the current selection
+	const selectedRange = _.findLast(trimmedMatchingRangeList, range => editor.selection.isEqual(range) === false)
+	if (selectedRange) {
+		return new vscode.Selection(
+			selectedRange.end,
+			selectedRange.start,
+		)
+	}
+
+	return null
+}
+
+const travel = (givenNode: ts.Node, document: vscode.TextDocument, selection: vscode.Selection, matchingRangeList: Array<vscode.Range> = []) => {
+	givenNode.forEachChild(childNode => {
+		let range = new vscode.Range(
+			document.positionAt(childNode.pos),
+			document.positionAt(childNode.end),
+		)
+		if (range.contains(selection)) {
+			matchingRangeList.push(range)
+			travel(childNode, document, selection, matchingRangeList)
+		}
+	})
+
+	return matchingRangeList
 }
