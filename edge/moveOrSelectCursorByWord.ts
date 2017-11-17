@@ -26,6 +26,9 @@ export const moveOrSelectCursorByWordLeft = (select: boolean) => async () => {
 		} else {
 			return setCursorOrSelection(lineRank, wordRank + wordText.length, select)
 		}
+
+	} else if (lineText.trim().length > 0) {
+		return setCursorOrSelection(lineRank, editor.document.lineAt(lineRank).firstNonWhitespaceCharacterIndex, select)
 	}
 
 	while (true) {
@@ -64,6 +67,9 @@ export const moveOrSelectCursorByWordRight = (select: boolean) => async () => {
 		} else {
 			return setCursorOrSelection(lineRank, wordRank, select)
 		}
+
+	} else if (lineText.trim().length > 0) {
+		return setCursorOrSelection(lineRank, editor.document.lineAt(lineRank).range.end.character, select)
 	}
 
 	while (true) {
