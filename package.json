@@ -72,9 +72,7 @@
                 "when": "editorTextFocus"
             },
             {
-                "command": "cosmicCursor.deleteLeftStart",
-                "key": "shift+backspace",
-                "when": "editorTextFocus && !editorReadOnly"
+                "command": "cosmicCursor.deleteLeftStart"
             }
         ]
     },
