@@ -4,7 +4,7 @@ import * as vscode from 'vscode'
 import * as ts from 'typescript'
 import { fail } from 'assert';
 
-export const selectCursorByBlockForTypeScript = (editor: vscode.TextEditor) => {
+export const expandBlockSelectionForTypeScript = (editor: vscode.TextEditor) => {
 	let rootNode: ts.Node
 	if (/(java|type)script(react)?/i.test(editor.document.languageId)) {
 		rootNode = ts.createSourceFile(fp.basename(editor.document.fileName), editor.document.getText(), ts.ScriptTarget.ES2015)

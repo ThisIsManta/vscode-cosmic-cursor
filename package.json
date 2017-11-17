@@ -42,12 +42,12 @@
                 "when": "editorTextFocus"
             },
             {
-                "command": "cosmicCursor.cursorUpSelect",
+                "command": "cosmicCursor.smartSelect.expand",
                 "key": "ctrl+shift+up",
                 "when": "editorTextFocus"
             },
             {
-                "command": "cosmicCursor.cursorDownSelect",
+                "command": "cosmicCursor.smartSelect.shrink",
                 "key": "ctrl+shift+down",
                 "when": "editorTextFocus"
             },

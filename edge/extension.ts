@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 import * as vscode from 'vscode'
 
 import { moveCursor } from './moveCursor'
-import { selectCursorByBlock, shrinkCursorByBlock } from './selectCursorByBlock'
+import { expandBlockSelection, shrinkBlockSelection } from './smartSelect'
 import { moveOrSelectCursorByWordLeft, moveOrSelectCursorByWordRight } from './moveOrSelectCursorByWord'
 
 export function activate(context: vscode.ExtensionContext) {
@@ -17,8 +17,8 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }))
 
-    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorUpSelect', selectCursorByBlock(cursorPairHistory)))
-    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorDownSelect', shrinkCursorByBlock(cursorPairHistory)))
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.smartSelect.expand', expandBlockSelection(cursorPairHistory)))
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.smartSelect.shrink', shrinkBlockSelection(cursorPairHistory)))
 
     context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordLeft', moveOrSelectCursorByWordLeft(false)))
     context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordLeftSelect', moveOrSelectCursorByWordLeft(true)))
