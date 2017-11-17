@@ -1,6 +1,6 @@
 # Cosmic Cursor
 
-**Cosmic Cursor** is a **VS Code** extension that overrides cursor-moving keyboard shortcuts.
+**Cosmic Cursor** is a **VS Code** extension that overrides some cursor-moving keyboard shortcuts.
 
 ## Basic usage
 
@@ -10,7 +10,7 @@ As soon as **Cosmic Cursor** is installed, the extension overrides the following
 
 	![ctrl+up](docs/ctrl+up.gif)
 
-- `ctrl+shift+up` - select the current word if nothing is selected, or expand the selection. For a JavaScript/TypeScript/JSON file, the selection expands grammatically.
+- `ctrl+shift+up` - select like the built-in `editor.action.smartSelect.grow` command, but better with JavaScript/TypeScript/JSON/React files. For example, the selection makes in React `<div>...</div>` expand gradually.
 - `ctrl+shift+down` - reduce the selection made by `ctrl+shift+up`.
 
 	![ctrl+shift+up](docs/ctrl+shift+up.gif)
@@ -21,6 +21,6 @@ As soon as **Cosmic Cursor** is installed, the extension overrides the following
 
 - `ctrl+shift+left` and `ctrl+shift+right` - similar to `ctrl+left`/`ctrl+right`, but this expands the selection instead of moving the cursor.
 
-- `shift+backspace` - delete the whole text on the left of the cursor.
+- _(no keybindings)_ - delete the whole text on the left of the cursor.
 
 	![shift+backspace](docs/shift+backspace.gif)
