@@ -1,5 +1,6 @@
 ### 2.0.0
 - Amended `cosmicCursor.cursorWordLeft` and `cosmicCursor.cursorWordRight` commands so that they snap to `()`, `{}`, `[]`, `''`, `""`, and ` `` `.
+- Amended `cursorUp` and `cursorDown` commands so that they stop before a word-containing line even fewer than 3 steps.
 
 ### 1.0.0
 - Renamed `cosmicCursor.cursorUpSelect` to `cosmicCursor.smartSelect.expand` command.

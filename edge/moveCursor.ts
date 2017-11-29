@@ -8,7 +8,8 @@ export const moveCursor = (direction: number) => () => {
 	const charTest = /\w/
 
 	let lineLeap = 0
-	let stepLong = 3
+	let lineStep = 3
+	let lastRank = lineRank
 	while (true) {
 		if (direction < 0 && lineRank === 0 || direction > 0 && lineRank === editor.document.lineCount - 1) {
 			break
@@ -19,10 +20,15 @@ export const moveCursor = (direction: number) => () => {
 		lineLeap += 1
 
 		if (charTest.test(lineText)) {
-			stepLong -= 1
-			if (stepLong === 0) {
+			lastRank = lineRank
+			lineStep -= 1
+			if (lineStep === 0) {
 				break
 			}
+
+		} else if (lineText.trim().length === 0 && editor.selection.active.line !== lastRank) {
+			lineLeap = Math.abs(editor.selection.active.line - lastRank)
+			break
 		}
 	}
 
