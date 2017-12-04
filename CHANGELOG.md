@@ -1,3 +1,6 @@
+### 2.1.0
+- Added `cosmicCursor.deleteRight` command.
+
 ### 2.0.0
 - Amended `cosmicCursor.cursorWordLeft` and `cosmicCursor.cursorWordRight` commands so that they snap to `()`, `{}`, `[]`, `''`, `""`, and ` `` `.
 - Amended `cosmicCursor.cursorUp` and `cosmicCursor.cursorDown` commands so that they stop before a word-containing line even fewer than 3 steps.

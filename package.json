@@ -73,6 +73,11 @@
             },
             {
                 "command": "cosmicCursor.deleteLeftStart"
+            },
+            {
+                "command": "cosmicCursor.deleteRight",
+                "key": "delete",
+                "when": "editorTextFocus && !editorReadonly"
             }
         ]
     },
