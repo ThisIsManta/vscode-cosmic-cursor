@@ -9,7 +9,8 @@
         "Other"
     ],
     "keywords": [
-        "cursor"
+        "cursor",
+        "keybindings"
     ],
     "repository": {
         "url": "https://github.com/ThisIsManta/vscode-cosmic-cursor"
@@ -19,7 +20,7 @@
     },
     "icon": "docs/logo.png",
     "galleryBanner": {
-        "color": "#ff3d00",
+        "color": "#651fff",
         "theme": "light"
     },
     "engines": {
