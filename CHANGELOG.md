@@ -1,3 +1,6 @@
+### 2.1.1
+- Amended the logo.
+
 ### 2.1.0
 - Added `cosmicCursor.deleteRight` command.
 
