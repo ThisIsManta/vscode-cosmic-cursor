@@ -1,5 +1,6 @@
 ### 2.2.0
 - Amended `cosmicCursor.cursorWordLeft` and `cosmicCursor.cursorWordRight` commands so that they skip over white-spaces between words.
+- Amended `cosmicCursor.cursorWordLeft` and `cosmicCursor.cursorWordRight` commands so that they support multi-cursors.
 
 ### 2.1.1
 - Amended the logo.

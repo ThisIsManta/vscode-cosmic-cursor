@@ -1,14 +1,6 @@
 import * as _ from 'lodash'
 import * as vscode from 'vscode'
 
-const setCursorOrSelection = (lineRank: number, charRank: number, select: boolean) => {
-	const cursor = new vscode.Position(lineRank, charRank)
-	vscode.window.activeTextEditor.selection = new vscode.Selection(
-		select ? vscode.window.activeTextEditor.selection.anchor : cursor,
-		cursor
-	)
-}
-
 const rsPairs = [
 	'\\(\\s*\\)',
 	'\\{\\s*\\}',
@@ -83,108 +75,124 @@ const splitWordsOrPairs = (text: string, excludePairs: boolean) => {
 	return (text.match(reUnicodeWord) || []).filter(word => !(excludePairs && rePairs.test(word)))
 }
 
+const newCursorOrSelection = (cursor: vscode.Selection, lineRank: number, charRank: number, select: boolean) => {
+	const active = new vscode.Position(lineRank, charRank)
+	return new vscode.Selection(
+		select ? cursor.anchor : active,
+		active,
+	)
+}
+
 export const moveOrSelectCursorByWordLeft = (select: boolean) => async () => {
 	const editor = vscode.window.activeTextEditor
-	let lineRank = editor.selection.active.line
-	let lineText = editor.document.getText(new vscode.Range(
-		editor.selection.active.with({ character: 0 }),
-		editor.selection.active,
-	))
+	editor.selections = editor.selections.map(cursor => {
+		let lineRank = cursor.active.line
+		let lineText = editor.document.getText(new vscode.Range(
+			cursor.active.with({ character: 0 }),
+			cursor.active,
+		))
 
-	const wordList = splitWordsOrPairs(lineText, select)
-	if (wordList.length > 0) {
-		const lastWord = _.last(wordList)
-		const lastLong = lastWord.length
-		let lastRank = lineText.lastIndexOf(lastWord)
-
-		if (rePairs.test(lastWord)) {
-			lastRank -= lastLong + 1
-		}
-
-		if (lastRank + lastLong === editor.selection.active.character || /^\s+$/.test(lineText.substring(lastRank + lastLong))) {
-			return setCursorOrSelection(lineRank, lastRank, select)
-
-		} else {
-			return setCursorOrSelection(lineRank, lastRank + lastLong, select)
-		}
-
-	} else if (lineText.trim().length > 0) {
-		return setCursorOrSelection(lineRank, editor.document.lineAt(lineRank).firstNonWhitespaceCharacterIndex, select)
-	}
-
-	while (true) {
 		const wordList = splitWordsOrPairs(lineText, select)
-		if (wordList.length === 0) {
-			if (lineRank === 0) {
-				break
+		if (wordList.length > 0) {
+			const lastWord = _.last(wordList)
+			const lastLong = lastWord.length
+			let lastRank = lineText.lastIndexOf(lastWord)
+
+			if (rePairs.test(lastWord)) {
+				lastRank -= lastLong + 1
+			}
+
+			if (lastRank + lastLong === cursor.active.character || /^\s+$/.test(lineText.substring(lastRank + lastLong))) {
+				return newCursorOrSelection(cursor, lineRank, lastRank, select)
 
 			} else {
-				lineRank -= 1
-				lineText = editor.document.lineAt(lineRank).text
-				continue
+				return newCursorOrSelection(cursor, lineRank, lastRank + lastLong, select)
 			}
+
+		} else if (lineText.trim().length > 0) {
+			return newCursorOrSelection(cursor, lineRank, editor.document.lineAt(lineRank).firstNonWhitespaceCharacterIndex, select)
 		}
 
-		const wordText = _.last(wordList)
-		let wordRank = lineText.lastIndexOf(wordText) + wordText.length
-		if (rePairs.test(wordText)) {
-			wordRank = wordRank - wordText.length + 1
+		while (true) {
+			const wordList = splitWordsOrPairs(lineText, select)
+			if (wordList.length === 0) {
+				if (lineRank === 0) {
+					break
+
+				} else {
+					lineRank -= 1
+					lineText = editor.document.lineAt(lineRank).text
+					continue
+				}
+			}
+
+			const wordText = _.last(wordList)
+			let wordRank = lineText.lastIndexOf(wordText) + wordText.length
+			if (rePairs.test(wordText)) {
+				wordRank = wordRank - wordText.length + 1
+			}
+
+			return newCursorOrSelection(cursor, lineRank, wordRank, select)
 		}
 
-		return setCursorOrSelection(lineRank, wordRank, select)
-	}
+		return cursor
+	})
 }
 
 export const moveOrSelectCursorByWordRight = (select: boolean) => async () => {
 	const editor = vscode.window.activeTextEditor
-	let lineRank = editor.selection.active.line
-	let lineText = editor.document.getText(new vscode.Range(
-		editor.selection.active,
-		editor.document.lineAt(editor.selection.active.line).range.end,
-	))
+	editor.selections = editor.selections.map(cursor => {
+		let lineRank = cursor.active.line
+		let lineText = editor.document.getText(new vscode.Range(
+			cursor.active,
+			editor.document.lineAt(cursor.active.line).range.end,
+		))
 
-	const wordList = splitWordsOrPairs(lineText, select)
-	if (wordList.length > 0) {
-		const leadWord = wordList[0]
-		const leadLong = leadWord.length
-		let leadRank = lineText.indexOf(wordList[0])
-
-		const baseRank = editor.selection.active.character
-
-		if (rePairs.test(leadWord)) {
-			leadRank += 1
-		}
-
-		if (leadRank === 0 || /^\s+$/.test(lineText.substring(0, leadRank))) {
-			return setCursorOrSelection(lineRank, baseRank + leadRank + leadLong, select)
-
-		} else {
-			return setCursorOrSelection(lineRank, baseRank + leadRank, select)
-		}
-
-	} else if (lineText.trim().length > 0) {
-		return setCursorOrSelection(lineRank, editor.document.lineAt(lineRank).range.end.character, select)
-	}
-
-	while (true) {
 		const wordList = splitWordsOrPairs(lineText, select)
-		if (wordList.length === 0) {
-			if (lineRank === editor.document.lineCount - 1) {
-				break
+		if (wordList.length > 0) {
+			const leadWord = wordList[0]
+			const leadLong = leadWord.length
+			let leadRank = lineText.indexOf(wordList[0])
+
+			const baseRank = cursor.active.character
+
+			if (rePairs.test(leadWord)) {
+				leadRank += 1
+			}
+
+			if (leadRank === 0 || /^\s+$/.test(lineText.substring(0, leadRank))) {
+				return newCursorOrSelection(cursor, lineRank, baseRank + leadRank + leadLong, select)
 
 			} else {
-				lineRank += 1
-				lineText = editor.document.lineAt(lineRank).text
-				continue
+				return newCursorOrSelection(cursor, lineRank, baseRank + leadRank, select)
 			}
+
+		} else if (lineText.trim().length > 0) {
+			return newCursorOrSelection(cursor, lineRank, editor.document.lineAt(lineRank).range.end.character, select)
 		}
 
-		const wordText = _.first(wordList)
-		let wordRank = lineText.indexOf(wordText)
-		if (rePairs.test(wordText)) {
-			wordRank = wordRank + 1
+		while (true) {
+			const wordList = splitWordsOrPairs(lineText, select)
+			if (wordList.length === 0) {
+				if (lineRank === editor.document.lineCount - 1) {
+					break
+
+				} else {
+					lineRank += 1
+					lineText = editor.document.lineAt(lineRank).text
+					continue
+				}
+			}
+
+			const wordText = _.first(wordList)
+			let wordRank = lineText.indexOf(wordText)
+			if (rePairs.test(wordText)) {
+				wordRank = wordRank + 1
+			}
+
+			return newCursorOrSelection(cursor, lineRank, wordRank, select)
 		}
 
-		return setCursorOrSelection(lineRank, wordRank, select)
-	}
+		return cursor
+	})
 }
