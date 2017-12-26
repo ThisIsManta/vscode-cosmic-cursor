@@ -91,18 +91,21 @@ export const moveOrSelectCursorByWordLeft = (select: boolean) => async () => {
 		editor.selection.active,
 	))
 
-	const wordText = _.last(splitWordsOrPairs(lineText, select))
-	if (wordText) {
-		let wordRank = lineText.lastIndexOf(wordText)
-		if (rePairs.test(wordText)) {
-			wordRank = wordRank - wordText.length + 1
+	const wordList = splitWordsOrPairs(lineText, select)
+	if (wordList.length > 0) {
+		const lastWord = _.last(wordList)
+		const lastLong = lastWord.length
+		let lastRank = lineText.lastIndexOf(lastWord)
+
+		if (rePairs.test(lastWord)) {
+			lastRank -= lastLong + 1
 		}
 
-		if (wordRank + wordText.length === editor.selection.active.character) {
-			return setCursorOrSelection(lineRank, wordRank, select)
+		if (lastRank + lastLong === editor.selection.active.character || /^\s+$/.test(lineText.substring(lastRank + lastLong))) {
+			return setCursorOrSelection(lineRank, lastRank, select)
 
 		} else {
-			return setCursorOrSelection(lineRank, wordRank + wordText.length, select)
+			return setCursorOrSelection(lineRank, lastRank + lastLong, select)
 		}
 
 	} else if (lineText.trim().length > 0) {
@@ -140,18 +143,23 @@ export const moveOrSelectCursorByWordRight = (select: boolean) => async () => {
 		editor.document.lineAt(editor.selection.active.line).range.end,
 	))
 
-	const wordText = _.first(splitWordsOrPairs(lineText, select))
-	if (wordText) {
-		let wordRank = editor.selection.active.character + lineText.indexOf(wordText)
-		if (rePairs.test(wordText)) {
-			wordRank = wordRank + 1
+	const wordList = splitWordsOrPairs(lineText, select)
+	if (wordList.length > 0) {
+		const leadWord = wordList[0]
+		const leadLong = leadWord.length
+		let leadRank = lineText.indexOf(wordList[0])
+
+		const baseRank = editor.selection.active.character
+
+		if (rePairs.test(leadWord)) {
+			leadRank += 1
 		}
 
-		if (wordRank === editor.selection.active.character) {
-			return setCursorOrSelection(lineRank, wordRank + wordText.length, select)
+		if (leadRank === 0 || /^\s+$/.test(lineText.substring(0, leadRank))) {
+			return setCursorOrSelection(lineRank, baseRank + leadRank + leadLong, select)
 
 		} else {
-			return setCursorOrSelection(lineRank, wordRank, select)
+			return setCursorOrSelection(lineRank, baseRank + leadRank, select)
 		}
 
 	} else if (lineText.trim().length > 0) {
