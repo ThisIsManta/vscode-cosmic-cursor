@@ -105,7 +105,7 @@ export const moveOrSelectCursorByWordLeft = (select: boolean) => async () => {
 				return newCursorOrSelection(cursor, lineRank, lastRank + 1, select)
 			}
 
-			if (lastRank + lastLong === cursor.active.character || /^\s+$/.test(lineText.substring(lastRank + lastLong))) {
+			if (lastRank + lastLong === cursor.active.character || select && /^(\s+|\.)$/.test(lineText.substring(lastRank + lastLong))) {
 				return newCursorOrSelection(cursor, lineRank, lastRank, select)
 
 			} else {
@@ -164,7 +164,7 @@ export const moveOrSelectCursorByWordRight = (select: boolean) => async () => {
 				return newCursorOrSelection(cursor, lineRank, baseRank + leadRank + 1, select)
 			}
 
-			if (leadRank === 0 || /^\s+$/.test(lineText.substring(0, leadRank))) {
+			if (leadRank === 0 || select && /^(\s+|\.)$/.test(lineText.substring(0, leadRank))) {
 				return newCursorOrSelection(cursor, lineRank, baseRank + leadRank + leadLong, select)
 
 			} else {
