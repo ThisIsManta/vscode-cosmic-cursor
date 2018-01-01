@@ -1,5 +1,6 @@
 ### 2.3.0
 - Amended `cosmicCursor.cursorWordLeft` and `cosmicCursor.cursorWordRight` commands so that they snap to `'`, `"`, and a back-quote, but not in pairs.
+- Amended `cosmicCursor.deleteRight` command so that it deals with empty lines and white-spaces smartly.
 
 ### 2.2.0
 - Amended `cosmicCursor.cursorWordLeft` and `cosmicCursor.cursorWordRight` commands so that they skip over white-spaces between words.
