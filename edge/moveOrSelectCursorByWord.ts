@@ -5,11 +5,13 @@ const rsPairs = [
 	'\\(\\s*\\)',
 	'\\{\\s*\\}',
 	'\\[\\s*\\]',
-	'\'\\s*\'',
-	'"\\s*"',
-	'`\\s*`',
 ]
 const rePairs = RegExp(rsPairs.join('|'))
+
+const rsQuotes = [
+	'\'', '"', '`'
+]
+const reQuotes = RegExp(rsQuotes.join('|'), 'g')
 
 // The following code is copied from https://github.com/lodash/lodash/blob/4.17.4/lodash.js#L206
 const rsAstralRange = '\\ud800-\\udfff',
@@ -68,6 +70,7 @@ const reUnicodeWord = RegExp([
 	rsOrdLower,
 	rsDigits,
 	rsEmoji,
+	...rsQuotes, // Note that this is my improvisation
 	...rsPairs, // Note that this is my improvisation
 ].join('|'), 'g')
 
@@ -96,10 +99,10 @@ export const moveOrSelectCursorByWordLeft = (select: boolean) => async () => {
 		if (wordList.length > 0) {
 			const lastWord = _.last(wordList)
 			const lastLong = lastWord.length
-			let lastRank = lineText.lastIndexOf(lastWord)
+			const lastRank = lineText.lastIndexOf(lastWord)
 
-			if (rePairs.test(lastWord)) {
-				lastRank -= lastLong + 1
+			if ((reQuotes.test(lastWord) || rePairs.test(lastWord)) && lastRank + 1 !== cursor.active.character) {
+				return newCursorOrSelection(cursor, lineRank, lastRank + 1, select)
 			}
 
 			if (lastRank + lastLong === cursor.active.character || /^\s+$/.test(lineText.substring(lastRank + lastLong))) {
@@ -127,12 +130,13 @@ export const moveOrSelectCursorByWordLeft = (select: boolean) => async () => {
 			}
 
 			const wordText = _.last(wordList)
-			let wordRank = lineText.lastIndexOf(wordText) + wordText.length
-			if (rePairs.test(wordText)) {
-				wordRank = wordRank - wordText.length + 1
+			const wordRank = lineText.lastIndexOf(wordText)
+
+			if (reQuotes.test(wordText) || rePairs.test(wordText)) {
+				return newCursorOrSelection(cursor, lineRank, wordRank + 1, select)
 			}
 
-			return newCursorOrSelection(cursor, lineRank, wordRank, select)
+			return newCursorOrSelection(cursor, lineRank, wordRank + wordText.length, select)
 		}
 
 		return cursor
@@ -152,12 +156,12 @@ export const moveOrSelectCursorByWordRight = (select: boolean) => async () => {
 		if (wordList.length > 0) {
 			const leadWord = wordList[0]
 			const leadLong = leadWord.length
-			let leadRank = lineText.indexOf(wordList[0])
+			const leadRank = lineText.indexOf(wordList[0])
 
 			const baseRank = cursor.active.character
 
-			if (rePairs.test(leadWord)) {
-				leadRank += 1
+			if ((reQuotes.test(leadWord) || rePairs.test(leadWord)) && baseRank + leadRank + 1 !== cursor.active.character) {
+				return newCursorOrSelection(cursor, lineRank, baseRank + leadRank + 1, select)
 			}
 
 			if (leadRank === 0 || /^\s+$/.test(lineText.substring(0, leadRank))) {
@@ -185,9 +189,10 @@ export const moveOrSelectCursorByWordRight = (select: boolean) => async () => {
 			}
 
 			const wordText = _.first(wordList)
-			let wordRank = lineText.indexOf(wordText)
-			if (rePairs.test(wordText)) {
-				wordRank = wordRank + 1
+			const wordRank = lineText.indexOf(wordText)
+
+			if (reQuotes.test(wordText) || rePairs.test(wordText)) {
+				return newCursorOrSelection(cursor, lineRank, wordRank + 1, select)
 			}
 
 			return newCursorOrSelection(cursor, lineRank, wordRank, select)
