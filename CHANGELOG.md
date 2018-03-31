@@ -1,3 +1,8 @@
+### 4.0.0
+- Added `cosmicCursor.deleteLeft` command.
+- Amended `cosmicCursor.deleteRight` command so it moves the cursor to the beginning of the next line if the current line is empty or white-space only.
+- Removed `cosmicCursor.deleteLeftStart` command in favor of `cosmicCursor.deleteLeft` command.
+
 ### 3.0.0
 - Amended `cosmicCursor.cursorWordLeft` and `cosmicCursor.cursorWordRight` commands so that they skip over white-spaces between words only if it is in selection mode.
 - Amended `cosmicCursor.cursorWordLeft` and `cosmicCursor.cursorWordRight` commands so that they snap to `'`, `"`, and a back-quote, but not in pairs.

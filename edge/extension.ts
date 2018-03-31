@@ -4,7 +4,7 @@ import * as vscode from 'vscode'
 import { moveCursor } from './moveCursor'
 import { expandBlockSelection, shrinkBlockSelection } from './smartSelect'
 import { moveOrSelectCursorByWordLeft, moveOrSelectCursorByWordRight } from './moveOrSelectCursorByWord'
-import { deleteLeftStart, deleteRight } from './delete'
+import { deleteLeft, deleteRight } from './delete'
 
 export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorUp', moveCursor(-1)))
@@ -27,6 +27,6 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordRight', moveOrSelectCursorByWordRight(false)))
     context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordRightSelect', moveOrSelectCursorByWordRight(true)))
 
-    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.deleteLeftStart', deleteLeftStart))
+    context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.deleteLeft', deleteLeft))
     context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.deleteRight', deleteRight))
 }

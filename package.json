@@ -73,7 +73,9 @@
                 "when": "editorTextFocus"
             },
             {
-                "command": "cosmicCursor.deleteLeftStart"
+                "command": "cosmicCursor.deleteLeft",
+                "key": "backspace",
+                "when": "editorTextFocus && !editorReadonly"
             },
             {
                 "command": "cosmicCursor.deleteRight",
