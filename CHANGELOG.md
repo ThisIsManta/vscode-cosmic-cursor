@@ -1,3 +1,7 @@
+### 4.0.1
+- Amended `cosmicCursor.deleteLeft` command so it deletes the previous active line if the previous active line is empty or white-space only
+- Amended `cosmicCursor.deleteLeft` command so it deletes one tab-stop in the condition if the current line has more tab-stop than the previous active line.
+
 ### 4.0.0
 - Added `cosmicCursor.deleteLeft` command.
 - Amended `cosmicCursor.deleteRight` command so it moves the cursor to the beginning of the next line if the current line is empty or white-space only.

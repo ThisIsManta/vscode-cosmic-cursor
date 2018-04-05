@@ -17,8 +17,32 @@ export const deleteLeft = () => {
 			continue
 		}
 
-		// Delete the white-spaces between the cursor and the first character of the current line
 		const thisLine = editor.document.lineAt(cursor.active.line)
+		if (cursor.active.line > 0) {
+			const thisSpan = editor.document.getText(new vscode.Range(thisLine.range.start, cursor.active))
+			if (thisSpan.length > 0 && /^(\s|\t)+$/.test(thisSpan)) {
+				// Delete the previous active line
+				const prevLine = editor.document.lineAt(cursor.active.line - 1)
+				if (prevLine.isEmptyOrWhitespace) {
+					editor.edit(edit => {
+						edit.delete(new vscode.Range(
+							prevLine.range.start,
+							thisLine.range.start,
+						))
+					})
+					continue
+				}
+
+				// Delete one tab-stop
+				const prevSpan = prevLine.text.match(/^(\s|\t)*/)[0]
+				if (thisSpan.length > prevSpan.length) {
+					vscode.commands.executeCommand('deleteLeft')
+					continue
+				}
+			}
+		}
+
+		// Delete the white-spaces between the cursor and the first character of the current line
 		if (cursor.active.character > 0 && cursor.active.character === thisLine.firstNonWhitespaceCharacterIndex) {
 			editor.edit(edit => {
 				edit.delete(new vscode.Range(
