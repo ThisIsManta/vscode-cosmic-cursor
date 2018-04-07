@@ -1,11 +1,13 @@
 import * as vscode from 'vscode'
 
-export const deleteLeft = () => {
+export const deleteLeft = async () => {
 	const editor = vscode.window.activeTextEditor
 	for (const cursor of editor.selections) {
-		// Delete normally if there is a selection
+		// Delete the selection normally
 		if (cursor.active.isEqual(cursor.anchor) === false) {
-			vscode.commands.executeCommand('deleteLeft')
+			await editor.edit(edit => {
+				edit.delete(cursor)
+			})
 			continue
 		}
 
@@ -24,7 +26,7 @@ export const deleteLeft = () => {
 				// Delete the previous active line
 				const prevLine = editor.document.lineAt(cursor.active.line - 1)
 				if (prevLine.isEmptyOrWhitespace) {
-					editor.edit(edit => {
+					await editor.edit(edit => {
 						edit.delete(new vscode.Range(
 							prevLine.range.start,
 							thisLine.range.start,
@@ -36,7 +38,15 @@ export const deleteLeft = () => {
 				// Delete one tab-stop
 				const prevSpan = prevLine.text.match(/^(\s|\t)*/)[0]
 				if (thisSpan.length > prevSpan.length) {
-					vscode.commands.executeCommand('deleteLeft')
+					const tabLong = editor.options.insertSpaces === true
+						? (typeof editor.options.tabSize === 'number' ? editor.options.tabSize : 1)
+						: 1
+					await editor.edit(edit => {
+						edit.delete(new vscode.Range(
+							cursor.active.translate({ characterDelta: -tabLong }),
+							cursor.active,
+						))
+					})
 					continue
 				}
 			}
@@ -44,7 +54,7 @@ export const deleteLeft = () => {
 
 		// Delete the white-spaces between the cursor and the first character of the current line
 		if (cursor.active.character > 0 && cursor.active.character === thisLine.firstNonWhitespaceCharacterIndex) {
-			editor.edit(edit => {
+			await editor.edit(edit => {
 				edit.delete(new vscode.Range(
 					new vscode.Position(cursor.active.line, 0),
 					cursor.active,
@@ -53,16 +63,31 @@ export const deleteLeft = () => {
 			continue
 		}
 
-		vscode.commands.executeCommand('deleteLeft')
+		// Delete one character normally
+		await editor.edit(edit => {
+			let prevChar: vscode.Position
+			if (cursor.active.character === 0) {
+				const prevLine = editor.document.lineAt(cursor.active.line - 1)
+				prevChar = prevLine.range.end
+			} else {
+				prevChar = cursor.active.translate({ characterDelta: -1 })
+			}
+			edit.delete(new vscode.Range(
+				prevChar,
+				cursor.active,
+			))
+		})
 	}
 }
 
-export const deleteRight = () => {
+export const deleteRight = async () => {
 	const editor = vscode.window.activeTextEditor
 	for (const cursor of editor.selections) {
 		// Delete normally if there is a selection
 		if (cursor.active.isEqual(cursor.anchor) === false) {
-			vscode.commands.executeCommand('deleteRight')
+			await editor.edit(edit => {
+				edit.delete(cursor)
+			})
 			continue
 		}
 
@@ -77,7 +102,7 @@ export const deleteRight = () => {
 		// Delete the white-spaces between the cursor and the first non-white-space character of the current line
 		const thisLine = editor.document.lineAt(cursor.active.line)
 		if (cursor.active.character < thisLine.firstNonWhitespaceCharacterIndex) {
-			editor.edit(edit => {
+			await editor.edit(edit => {
 				edit.delete(new vscode.Range(
 					cursor.active,
 					cursor.active.with({ character: thisLine.firstNonWhitespaceCharacterIndex }),
@@ -91,7 +116,7 @@ export const deleteRight = () => {
 
 			// Delete the current whole line
 			if (thisLine.isEmptyOrWhitespace) {
-				editor.edit(edit => {
+				await editor.edit(edit => {
 					edit.delete(new vscode.Range(
 						thisLine.range.start,
 						thisLine.rangeIncludingLineBreak.end,
@@ -103,7 +128,7 @@ export const deleteRight = () => {
 			// Delete the white-spaces between the cursor and the first non-white-space character of the next line
 			const betweenTheLines = editor.document.getText(new vscode.Range(cursor.active, thisLine.range.end))
 			if (betweenTheLines.trim().length === 0 && nextLine.firstNonWhitespaceCharacterIndex > 0) {
-				editor.edit(edit => {
+				await editor.edit(edit => {
 					const currentPositionAlreadyHasSpaceBumper = cursor.active.character === 0 || editor.document.getText(new vscode.Range(cursor.active.translate({ characterDelta: -1 }), cursor.active)) === ' '
 					edit.replace(new vscode.Range(
 						cursor.active,
@@ -114,6 +139,16 @@ export const deleteRight = () => {
 			}
 		}
 
-		vscode.commands.executeCommand('deleteRight')
+		// Delete one character normally
+		await editor.edit(edit => {
+			let nextChar = cursor.active.translate({ characterDelta: +1 })
+			if (nextChar.isAfter(thisLine.range.end)) {
+				nextChar = cursor.active.translate({ lineDelta: +1 }).with({ character: 0 })
+			}
+			edit.delete(new vscode.Range(
+				cursor.active,
+				nextChar,
+			))
+		})
 	}
 }
