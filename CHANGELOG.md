@@ -1,3 +1,6 @@
+### 4.0.3
+- Amended `cosmicCursor.smartSelect.expand` command so the smallest selection for a string literal is the characters between the quotes.
+
 ### 4.0.2
 - Fixed `cosmicCursor.deleteLeft` and `cosmicCursor.deleteRight` commands so they work correctly with multi-selections.
 

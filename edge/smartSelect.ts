@@ -83,22 +83,8 @@ export const expandBlockSelectionForTypeScript = (editor: vscode.TextEditor) => 
 		))
 	}
 
-	// Trim the beginning white-spaces and new-lines for some ranges
-	const trimmedMatchingRangeList = matchingRangeList.map(range => {
-		const fullText = editor.document.getText(range)
-		const trimText = _.trimStart(fullText)
-		if (fullText.length !== trimText.length) {
-			return new vscode.Range(
-				editor.document.positionAt(editor.document.offsetAt(range.start) + fullText.length - trimText.length),
-				range.end,
-			)
-		}
-
-		return range
-	})
-
 	// Select the smallest range that is bigger than the current selection
-	const selectedRange = _.findLast(trimmedMatchingRangeList, range => editor.selection.isEqual(range) === false)
+	const selectedRange = _.findLast(matchingRangeList, range => editor.selection.isEqual(range) === false)
 	if (selectedRange) {
 		return new vscode.Selection(
 			selectedRange.end,
@@ -115,8 +101,45 @@ const travel = (givenNode: ts.Node, document: vscode.TextDocument, selection: vs
 			document.positionAt(childNode.pos),
 			document.positionAt(childNode.end),
 		)
+
+		{ // Trim the beginning white-spaces and new-lines for some ranges
+			const fullText = document.getText(range)
+			const trimText = _.trimStart(fullText)
+			if (fullText.length !== trimText.length) {
+				range = new vscode.Range(
+					document.positionAt(document.offsetAt(range.start) + fullText.length - trimText.length),
+					range.end,
+				)
+			}
+		}
+
 		if (range.contains(selection)) {
 			matchingRangeList.push(range)
+
+			if (childNode.kind === ts.SyntaxKind.StringLiteral && ts.isStringLiteral(childNode) && childNode.text.trim().length > 0) {
+				let fullText = document.getText(range)
+				let modifiedRange = range
+				if (/^('|"|`)/.test(fullText)) {
+					const trimText = fullText.substring(1)
+					modifiedRange = new vscode.Range(
+						modifiedRange.start.translate({ characterDelta: +1 }),
+						modifiedRange.end,
+					)
+					fullText = trimText
+				}
+				if (/('|"|`)$/.test(fullText)) {
+					const trimText = fullText.substring(0, fullText.length - 1)
+					modifiedRange = new vscode.Range(
+						modifiedRange.start,
+						modifiedRange.end.translate({ characterDelta: -1 }),
+					)
+					fullText = trimText
+				}
+				if (modifiedRange.contains(selection)) {
+					matchingRangeList.push(modifiedRange)
+				}
+			}
+
 			travel(childNode, document, selection, matchingRangeList)
 		}
 	})
