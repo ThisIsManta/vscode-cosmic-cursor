@@ -1,3 +1,6 @@
+### 4.0.4
+- Fixed `cosmicCursor.deleteLeft` command so it deletes a tab stop before the previous empty line.
+
 ### 4.0.3
 - Amended `cosmicCursor.smartSelect.expand` command so the smallest selection for a string literal is the characters between the quotes.
 

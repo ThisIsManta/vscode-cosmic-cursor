@@ -23,19 +23,11 @@ export const deleteLeft = async () => {
 		if (cursor.active.line > 0) {
 			const thisSpan = editor.document.getText(new vscode.Range(thisLine.range.start, cursor.active))
 			if (thisSpan.length > 0 && /^(\s|\t)+$/.test(thisSpan)) {
-				// Delete the previous active line
-				const prevLine = editor.document.lineAt(cursor.active.line - 1)
-				if (prevLine.isEmptyOrWhitespace) {
-					await editor.edit(edit => {
-						edit.delete(new vscode.Range(
-							prevLine.range.start,
-							thisLine.range.start,
-						))
-					})
-					continue
-				}
-
 				// Delete one tab-stop
+				let prevLine = editor.document.lineAt(cursor.active.line - 1)
+				while (prevLine.isEmptyOrWhitespace && prevLine.lineNumber > 0) {
+					prevLine = editor.document.lineAt(prevLine.lineNumber - 1)
+				}
 				const prevSpan = prevLine.text.match(/^(\s|\t)*/)[0]
 				if (thisSpan.length > prevSpan.length) {
 					const tabLong = editor.options.insertSpaces === true
@@ -45,6 +37,18 @@ export const deleteLeft = async () => {
 						edit.delete(new vscode.Range(
 							cursor.active.translate({ characterDelta: -tabLong }),
 							cursor.active,
+						))
+					})
+					continue
+				}
+
+				// Delete the previous active line
+				prevLine = editor.document.lineAt(cursor.active.line - 1)
+				if (prevLine.isEmptyOrWhitespace) {
+					await editor.edit(edit => {
+						edit.delete(new vscode.Range(
+							prevLine.range.start,
+							thisLine.range.start,
 						))
 					})
 					continue
