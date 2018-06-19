@@ -1,3 +1,6 @@
+### 4.1.0
+- Amended `cosmicCursor.deleteRight` command so it does not spare a white-space before the next non-white-space character.
+
 ### 4.0.4
 - Fixed `cosmicCursor.deleteLeft` command so it deletes a tab stop before the previous empty line.
 
