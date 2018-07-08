@@ -2,7 +2,6 @@ import * as fp from 'path'
 import * as _ from 'lodash'
 import * as vscode from 'vscode'
 import * as ts from 'typescript'
-import { fail } from 'assert';
 
 interface Sign {
 	char: string
@@ -63,7 +62,7 @@ export const expandBlockSelectionForTypeScript = (editor: vscode.TextEditor) => 
 		rootNode = ts.createSourceFile(fp.basename(editor.document.fileName), editor.document.getText(), ts.ScriptTarget.ES2015)
 
 	} else if (editor.document.languageId === 'json') {
-		rootNode = ts.parseJsonText(fp.basename(editor.document.fileName), editor.document.getText()).jsonObject
+		rootNode = ts.parseJsonText(fp.basename(editor.document.fileName), editor.document.getText())
 	}
 
 	if (!rootNode) {
