@@ -1,3 +1,6 @@
+### 5.0.0
+- Added `cosmicCursor.smartDuplicate` command so it copies.
+
 ### 4.1.0
 - Amended `cosmicCursor.deleteRight` command so it does not spare a white-space before the next non-white-space character.
 

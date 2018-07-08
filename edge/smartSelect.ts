@@ -34,14 +34,21 @@ export const expandBlockSelection = (cursorPairHistory: Array<vscode.Selection>)
 		cursorPairHistory.push(editor.selection)
 	}
 
-	const newSelection = expandBlockSelectionForTypeScript(editor)
-	if (newSelection) {
-		editor.selection = newSelection
-		cursorPairHistory.push(newSelection)
-		return null
+	const matchingNodeRangeList = expandBlockSelectionForTypeScript(editor)
+
+	// Select the smallest range that is bigger than the current selection
+	const selectedNodeRange = _.findLast(matchingNodeRangeList, item => editor.selection.isEqual(item.range) === false)
+
+	if (!selectedNodeRange) {
+		return vscode.commands.executeCommand('editor.action.smartSelect.grow')
 	}
 
-	return vscode.commands.executeCommand('editor.action.smartSelect.grow')
+	const newSelection = new vscode.Selection(
+		selectedNodeRange.range.end,
+		selectedNodeRange.range.start,
+	)
+	editor.selection = newSelection
+	cursorPairHistory.push(newSelection)
 }
 
 export const shrinkBlockSelection = (cursorPairHistory: Array<vscode.Selection>) => () => {
@@ -59,7 +66,7 @@ export const shrinkBlockSelection = (cursorPairHistory: Array<vscode.Selection>)
 export const expandBlockSelectionForTypeScript = (editor: vscode.TextEditor) => {
 	let rootNode: ts.Node
 	if (/(java|type)script(react)?/i.test(editor.document.languageId)) {
-		rootNode = ts.createSourceFile(fp.basename(editor.document.fileName), editor.document.getText(), ts.ScriptTarget.ES2015)
+		rootNode = ts.createSourceFile(fp.basename(editor.document.fileName), editor.document.getText(), ts.ScriptTarget.ES2015, true)
 
 	} else if (editor.document.languageId === 'json') {
 		rootNode = ts.parseJsonText(fp.basename(editor.document.fileName), editor.document.getText())
@@ -71,53 +78,56 @@ export const expandBlockSelectionForTypeScript = (editor: vscode.TextEditor) => 
 
 	// Travel through the given root node and return an array of range that fall into the given selection
 	// Note that the array is sorted in which the bigger range always come first.
-	const matchingRangeList = travel(rootNode, editor.document, editor.selection)
+	const matchingNodeRangeList = travel(rootNode, editor.document, editor.selection)
 
 	// Add the root node range to the results
 	// Note that this is a special case for JSON file as the node returned from "parseJsonText" function has an invalid "pos" and/or "end" property
 	if (editor.document.languageId === 'json') {
-		matchingRangeList.unshift(new vscode.Range(
-			editor.document.positionAt(rootNode.pos),
-			editor.document.positionAt(rootNode.end),
-		))
+		matchingNodeRangeList.unshift({
+			range: new vscode.Range(
+				editor.document.positionAt(rootNode.pos),
+				editor.document.positionAt(rootNode.end),
+			),
+			node: rootNode,
+		})
 	}
 
-	// Select the smallest range that is bigger than the current selection
-	const selectedRange = _.findLast(matchingRangeList, range => editor.selection.isEqual(range) === false)
-	if (selectedRange) {
-		return new vscode.Selection(
-			selectedRange.end,
-			selectedRange.start,
-		)
-	}
-
-	return null
+	return matchingNodeRangeList
 }
 
-const travel = (givenNode: ts.Node, document: vscode.TextDocument, selection: vscode.Selection, matchingRangeList: Array<vscode.Range> = []) => {
-	givenNode.forEachChild(childNode => {
-		let range = new vscode.Range(
-			document.positionAt(childNode.pos),
-			document.positionAt(childNode.end),
+export class NodeRange {
+	node: ts.Node
+	range: vscode.Range
+
+	constructor(node: ts.Node, document: vscode.TextDocument) {
+		this.node = node
+		this.range = new vscode.Range(
+			document.positionAt(node.pos),
+			document.positionAt(node.end),
 		)
 
-		{ // Trim the beginning white-spaces and new-lines for some ranges
-			const fullText = document.getText(range)
-			const trimText = _.trimStart(fullText)
-			if (fullText.length !== trimText.length) {
-				range = new vscode.Range(
-					document.positionAt(document.offsetAt(range.start) + fullText.length - trimText.length),
-					range.end,
-				)
-			}
+		// Trim the beginning white-spaces and new-lines for some ranges
+		const fullText = document.getText(this.range)
+		const trimText = _.trimStart(fullText)
+		if (fullText.length !== trimText.length) {
+			this.range = new vscode.Range(
+				document.positionAt(document.offsetAt(this.range.start) + fullText.length - trimText.length),
+				this.range.end,
+			)
 		}
+	}
+}
 
-		if (range.contains(selection)) {
-			matchingRangeList.push(range)
+const travel = (givenNode: ts.Node, document: vscode.TextDocument, selection: vscode.Selection, matchingNodeRangeList: Array<NodeRange> = []) => {
+	givenNode.forEachChild(childNode => {
+		const nodeRange = new NodeRange(childNode, document)
+
+		if (nodeRange.range.contains(selection)) {
+			matchingNodeRangeList.push(nodeRange)
 
 			if (childNode.kind === ts.SyntaxKind.StringLiteral && ts.isStringLiteral(childNode) && childNode.text.trim().length > 0) {
-				let fullText = document.getText(range)
-				let modifiedRange = range
+				let fullText = document.getText(nodeRange.range)
+				let modifiedRange = nodeRange.range
 				if (/^('|"|`)/.test(fullText)) {
 					const trimText = fullText.substring(1)
 					modifiedRange = new vscode.Range(
@@ -135,13 +145,13 @@ const travel = (givenNode: ts.Node, document: vscode.TextDocument, selection: vs
 					fullText = trimText
 				}
 				if (modifiedRange.contains(selection)) {
-					matchingRangeList.push(modifiedRange)
+					matchingNodeRangeList.push({ node: givenNode, range: modifiedRange })
 				}
 			}
 
-			travel(childNode, document, selection, matchingRangeList)
+			travel(childNode, document, selection, matchingNodeRangeList)
 		}
 	})
 
-	return matchingRangeList
+	return matchingNodeRangeList
 }
