@@ -26,15 +26,10 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 	let createAction: (targetNodeRange: NodeRange) => (edit: vscode.TextEditorEdit) => void =
 		targetNodeRange => edit => {
 			const lineFeedOrSpace = getLineFeedOrDefault(targetNodeRange, ' ')
-			edit.insert(targetNodeRange.range.start, editor.document.getText(targetNodeRange.range) + ',' + lineFeedOrSpace)
+			edit.insert(targetNodeRange.range.start, targetNodeRange.node.getText() + ',' + lineFeedOrSpace)
 		}
 
-	if (ts.isPropertyAssignment(parentNodeRange.node)) {
-		parentNodeRange.node.initializer.forEachChild(childNode => {
-			childNodeRangeList.push(new NodeRange(childNode, editor.document))
-		})
-
-	} else if (
+	if (
 		ts.isObjectLiteralExpression(parentNodeRange.node) ||
 		ts.isArrayLiteralExpression(parentNodeRange.node)
 	) {
@@ -51,26 +46,65 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 		ts.isBlock(parentNodeRange.node) ||
 		ts.isSourceFile(parentNodeRange.node) ||
 		ts.isModuleBlock(parentNodeRange.node) ||
-		ts.isCaseBlock(parentNodeRange.node)
+		ts.isCaseBlock(parentNodeRange.node) ||
+		ts.isArrowFunction(parentNodeRange.node)
 	) {
 		parentNodeRange.node.forEachChild(childNode => {
 			childNodeRangeList.push(new NodeRange(childNode, editor.document))
 		})
 		createAction = targetNodeRange => edit => {
-			const lineFeedOfSpace = getLineFeedOrDefault(targetNodeRange, ' ')
-			// TODO: add ; when in the same line
-			edit.insert(targetNodeRange.range.start, editor.document.getText(targetNodeRange.range) + lineFeedOfSpace)
+			const lineFeedOrSpace = getLineFeedOrDefault(targetNodeRange, ' ')
+			const fullText = targetNodeRange.node.getText()
+			const semiColonNeeded = lineFeedOrSpace === ' ' && fullText.endsWith(';') === false
+
+			if (ts.isArrowFunction(parentNodeRange.node)) {
+				const afterPrevious = editor.document.positionAt(targetNodeRange.node.getFullStart())
+				edit.insert(afterPrevious, ' {')
+
+				if (lineFeedOrSpace.includes('\n')) {
+					let lineText = editor.document.getText(new vscode.Range(targetNodeRange.range.end, editor.document.lineAt(targetNodeRange.range.end.line).range.end))
+					const nextCharMatch = lineText.match(/\S/)
+					if (nextCharMatch) {
+						const beforeNext = new vscode.Position(targetNodeRange.range.end.line, targetNodeRange.range.end.character + nextCharMatch.index)
+						edit.insert(beforeNext, '}')
+
+					} else {
+						let nonEmptyLine = editor.document.lineAt(targetNodeRange.range.end.line + 1)
+						while (/\S/.test(nonEmptyLine.text) === false) {
+							nonEmptyLine = editor.document.lineAt(nonEmptyLine.lineNumber + 1)
+						}
+						const beforeNext = new vscode.Position(nonEmptyLine.range.start.line, nonEmptyLine.range.start.character + nonEmptyLine.text.match(/\S/).index)
+						edit.insert(beforeNext, '}')
+					}
+
+				} else {
+					edit.insert(targetNodeRange.range.end, lineFeedOrSpace + '}')
+				}
+
+				edit.insert(targetNodeRange.range.start, fullText + (semiColonNeeded ? ';' : '') + lineFeedOrSpace + 'return ')
+
+			} else {
+				edit.insert(targetNodeRange.range.start, fullText + (semiColonNeeded ? ';' : '') + lineFeedOrSpace)
+			}
 		}
 
-	} else if (ts.isBinaryExpression(parentNodeRange.node) && _.includes([ts.SyntaxKind.AmpersandAmpersandToken, ts.SyntaxKind.BarBarToken], parentNodeRange.node.operatorToken.kind)) {
+	} else if (
+		ts.isBinaryExpression(parentNodeRange.node) &&
+		[
+			ts.SyntaxKind.PlusToken, ts.SyntaxKind.MinusToken, ts.SyntaxKind.AsteriskToken, ts.SyntaxKind.SlashToken, ts.SyntaxKind.PercentToken,
+			ts.SyntaxKind.AmpersandToken, ts.SyntaxKind.BarToken, ts.SyntaxKind.CaretToken,
+			ts.SyntaxKind.LessThanLessThanToken, ts.SyntaxKind.GreaterThanGreaterThanToken, ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken,
+			ts.SyntaxKind.AmpersandAmpersandToken, ts.SyntaxKind.BarBarToken,
+		].indexOf(parentNodeRange.node.operatorToken.kind) >= 0
+	) {
 		[parentNodeRange.node.left, parentNodeRange.node.right].forEach(childNode => {
 			childNodeRangeList.push(new NodeRange(childNode, editor.document))
 		})
 		createAction = targetNodeRange => edit => {
 			const parentNode = parentNodeRange.node as ts.BinaryExpression
 			const operator = parentNode.operatorToken.getFullText()
-			const lineFeedOfSpace = getLineFeedOrDefault(targetNodeRange, ' ')
-			edit.insert(targetNodeRange.range.start, editor.document.getText(targetNodeRange.range) + operator + lineFeedOfSpace)
+			const lineFeedOrSpace = getLineFeedOrDefault(targetNodeRange, ' ')
+			edit.insert(targetNodeRange.range.start, targetNodeRange.node.getText() + operator + lineFeedOrSpace)
 		}
 
 	} else if (ts.isIfStatement(parentNodeRange.node)) {
@@ -101,9 +135,9 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 			} else { // In case of else-block
 				edit.insert(targetNodeRange.range.start, 'if () ' + targetNodeRange.node.getText() + ' else ')
 				const condition = targetNodeRange.range.start.translate({ characterDelta: 'if ('.length })
-				setTimeout(() => {
+				_.defer(() => {
 					editor.selections = [new vscode.Selection(condition, condition)]
-				}, 0)
+				})
 			}
 		}
 	}
