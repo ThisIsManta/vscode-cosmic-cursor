@@ -26,7 +26,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 	let createAction: (targetNodeRange: NodeRange) => (edit: vscode.TextEditorEdit) => void =
 		targetNodeRange => edit => {
 			const lineFeedOrSpace = getLineFeedOrDefault(targetNodeRange, ' ')
-			edit.insert(targetNodeRange.range.end, ',' + lineFeedOrSpace + editor.document.getText(targetNodeRange.range))
+			edit.insert(targetNodeRange.range.start, editor.document.getText(targetNodeRange.range) + ',' + lineFeedOrSpace)
 		}
 
 	if (ts.isPropertyAssignment(parentNodeRange.node)) {
@@ -59,14 +59,56 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 		createAction = targetNodeRange => edit => {
 			const lineFeedOfSpace = getLineFeedOrDefault(targetNodeRange, ' ')
 			// TODO: add ; when in the same line
-			edit.insert(targetNodeRange.range.end, lineFeedOfSpace + editor.document.getText(targetNodeRange.range))
+			edit.insert(targetNodeRange.range.start, editor.document.getText(targetNodeRange.range) + lineFeedOfSpace)
 		}
 
-		// TODO: (... && || ...)
-		// TODO: if (...) => else if (...)
-		// TODO: switch case
-		// TODO: if a comment, copy normally
+	} else if (ts.isBinaryExpression(parentNodeRange.node) && _.includes([ts.SyntaxKind.AmpersandAmpersandToken, ts.SyntaxKind.BarBarToken], parentNodeRange.node.operatorToken.kind)) {
+		[parentNodeRange.node.left, parentNodeRange.node.right].forEach(childNode => {
+			childNodeRangeList.push(new NodeRange(childNode, editor.document))
+		})
+		createAction = targetNodeRange => edit => {
+			const parentNode = parentNodeRange.node as ts.BinaryExpression
+			const operator = parentNode.operatorToken.getFullText()
+			const lineFeedOfSpace = getLineFeedOrDefault(targetNodeRange, ' ')
+			edit.insert(targetNodeRange.range.start, editor.document.getText(targetNodeRange.range) + operator + lineFeedOfSpace)
+		}
+
+	} else if (ts.isIfStatement(parentNodeRange.node)) {
+		[parentNodeRange.node.expression, parentNodeRange.node.thenStatement, parentNodeRange.node.elseStatement].forEach(childNode => {
+			if (!childNode) return null
+			childNodeRangeList.push(new NodeRange(childNode, editor.document))
+		})
+		createAction = targetNodeRange => edit => {
+			const parentNode = parentNodeRange.node as ts.IfStatement
+			if (targetNodeRange.node === parentNode.expression || targetNodeRange.node === parentNode.thenStatement) { // In case of condition or if-block
+				let thenText = parentNode.getText()
+				if (parentNode.elseStatement) {
+					const elseText = parentNode.elseStatement.getText()
+					thenText = thenText.substring(0, thenText.length - elseText.length)
+				} else {
+					thenText += ' else '
+				}
+				edit.insert(parentNodeRange.range.start, thenText)
+
+			} else if (ts.isIfStatement(targetNodeRange.node)) { // In case of else-if-block
+				let thenText = targetNodeRange.node.getText()
+				if (targetNodeRange.node.elseStatement) {
+					const elseText = targetNodeRange.node.elseStatement.getText()
+					thenText = thenText.substring(0, thenText.length - elseText.length)
+				}
+				edit.insert(targetNodeRange.range.start, thenText)
+
+			} else { // In case of else-block
+				edit.insert(targetNodeRange.range.start, 'if () ' + targetNodeRange.node.getText() + ' else ')
+				const condition = targetNodeRange.range.start.translate({ characterDelta: 'if ('.length })
+				setTimeout(() => {
+					editor.selections = [new vscode.Selection(condition, condition)]
+				}, 0)
+			}
+		}
 	}
+	// TODO: switch case
+	// TODO: if a comment, copy normally
 
 	if (childNodeRangeList.length === 0) {
 		return null
