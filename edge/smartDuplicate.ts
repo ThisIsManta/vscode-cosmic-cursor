@@ -3,17 +3,59 @@ import * as vscode from 'vscode'
 import * as ts from 'typescript'
 import { expandBlockSelectionForTypeScript, NodeRange } from './smartSelect'
 
+// TODO: support multi-selections
 export const duplicate = async () => {
 	const editor = vscode.window.activeTextEditor
 
+	// Neither support multiline selection nor range selection
+	if (editor.selections.length > 1 || editor.selection.active.isEqual(editor.selection.anchor) === false) {
+		return vscode.commands.executeCommand('editor.action.copyLinesDownAction')
+	}
+
+	if (/^((java|type)script(react)?|jsonc)$/.test(editor.document.languageId)) {
+		// In case of single-line comments
+		const currentLine = editor.document.lineAt(editor.selection.active.line).text
+		if (currentLine.trim().startsWith('//')) {
+			return vscode.commands.executeCommand('editor.action.copyLinesDownAction')
+		}
+
+		const northCursor = editor.selection.active.isBefore(editor.selection.anchor) ? editor.selection.active : editor.selection.anchor
+		const northPartText = editor.document.getText(new vscode.Range(new vscode.Position(0, 0), northCursor))
+		const northOpenCommentIndex = northPartText.lastIndexOf('/*')
+		const northCloseCommentIndex = northPartText.indexOf('*/', northOpenCommentIndex + 2)
+
+		const southCursor = editor.selection.active.isAfter(editor.selection.anchor) ? editor.selection.active : editor.selection.anchor
+		const endOfFile = editor.document.lineAt(editor.document.lineCount - 1).range.end
+		const southPartText = editor.document.getText(new vscode.Range(southCursor, endOfFile))
+		const southCloseCommentIndex = southPartText.indexOf('*/')
+		const southOpenCommentIndex = southPartText.lastIndexOf('/*', southCloseCommentIndex)
+
+		// In case of multi-line comments
+		if (northOpenCommentIndex >= 0 && northCloseCommentIndex === -1 && southCloseCommentIndex >= 0 && southOpenCommentIndex === -1) {
+			return editor.edit(edit => {
+				const startOfComment = editor.document.positionAt(northOpenCommentIndex)
+				const endOfComment = editor.document.positionAt(editor.document.offsetAt(southCursor) + southCloseCommentIndex + 2)
+				const startOfLineText = editor.document.getText(new vscode.Range(startOfComment.with({ character: 0 }), startOfComment))
+				const endOfLineText = editor.document.getText(new vscode.Range(endOfComment, editor.document.lineAt(endOfComment.line).range.end))
+				let lineFeedOrEmpty = ''
+				if (startOfLineText.trim().length === 0 && endOfLineText.trim().length === 0) {
+					lineFeedOrEmpty = (editor.document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n') + startOfLineText
+				}
+
+				edit.insert(startOfComment, editor.document.getText(new vscode.Range(startOfComment, endOfComment)) + lineFeedOrEmpty)
+			})
+		}
+	}
+
 	const sortedNodeRangeList = expandBlockSelectionForTypeScript(editor)
+	if (sortedNodeRangeList) {
+		for (let index = sortedNodeRangeList.length - 1; index >= 0; index--) {
+			const parentNodeRange = sortedNodeRangeList[index]
 
-	for (let index = sortedNodeRangeList.length - 1; index >= 0; index--) {
-		const parentNodeRange = sortedNodeRangeList[index]
-
-		const action = createActionByNodeType(parentNodeRange, editor)
-		if (action) {
-			return editor.edit(action)
+			const action = createActionByNodeType(parentNodeRange, editor)
+			if (action) {
+				return editor.edit(action)
+			}
 		}
 	}
 
@@ -41,6 +83,15 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 		parentNodeRange.node.arguments.forEach(childNode => {
 			childNodeRangeList.push(new NodeRange(childNode, editor.document))
 		})
+
+	} else if (ts.isCaseClause(parentNodeRange.node)) {
+		parentNodeRange.node.statements.forEach(childNode => {
+			childNodeRangeList.push(new NodeRange(childNode, editor.document))
+		})
+		createAction = targetNodeRange => edit => {
+			const lineFeedOrSpace = getLineFeedOrDefault(targetNodeRange, ' ')
+			edit.insert(targetNodeRange.range.start, targetNodeRange.node.getText() + lineFeedOrSpace)
+		}
 
 	} else if (
 		ts.isBlock(parentNodeRange.node) ||
@@ -141,36 +192,29 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 			}
 		}
 	}
-	// TODO: switch case
-	// TODO: if a comment, copy normally
 
 	if (childNodeRangeList.length === 0) {
 		return null
 	}
 
-	if (editor.selection.active.isEqual(editor.selection.anchor)) { // In case of a non-selection
-		const cursorMatchingNodeRange = childNodeRangeList.find(item => item.range.contains(editor.selection))
-		if (cursorMatchingNodeRange) {
-			return createAction(cursorMatchingNodeRange)
+	const cursorMatchingNodeRange = childNodeRangeList.find(item => item.range.contains(editor.selection))
+	if (cursorMatchingNodeRange) {
+		return createAction(cursorMatchingNodeRange)
+	}
+
+	if (parentNodeRange.range.isSingleLine) {
+		return null
+	}
+
+	const currentLine = editor.document.lineAt(editor.selection.active.line)
+	const lineMatchingNodeRangeList = childNodeRangeList.filter(item => currentLine.lineNumber >= item.range.start.line && currentLine.lineNumber <= item.range.end.line)
+	if (lineMatchingNodeRangeList.length > 0) {
+		if (currentLine.text.substring(0, editor.selection.active.character).trim().length === 0) {
+			return createAction(_.first(lineMatchingNodeRangeList))
+
+		} else if (currentLine.text.substring(editor.selection.active.character).trim().length === 0) {
+			return createAction(_.last(lineMatchingNodeRangeList))
 		}
-
-		if (parentNodeRange.range.isSingleLine) {
-			return null
-		}
-
-		const currentLine = editor.document.lineAt(editor.selection.active.line)
-		const lineMatchingNodeRangeList = childNodeRangeList.filter(item => currentLine.lineNumber >= item.range.start.line && currentLine.lineNumber <= item.range.end.line)
-		if (lineMatchingNodeRangeList.length > 0) {
-			if (currentLine.text.substring(0, editor.selection.active.character).trim().length === 0) {
-				return createAction(_.first(lineMatchingNodeRangeList))
-
-			} else if (currentLine.text.substring(editor.selection.active.character).trim().length === 0) {
-				return createAction(_.last(lineMatchingNodeRangeList))
-			}
-		}
-
-	} else { // In case of a selection
-
 	}
 
 	function getLineFeedOrDefault(targetNodeRange: NodeRange, defaultValue: string) {

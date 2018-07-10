@@ -3,30 +3,6 @@ import * as _ from 'lodash'
 import * as vscode from 'vscode'
 import * as ts from 'typescript'
 
-interface Sign {
-	char: string
-	rank: number
-	indx: number
-}
-
-const findPair = (charList: Array<Sign>, openChar: string, closChar: string) => {
-	let wait = 0
-	for (const sign of charList) {
-		if (openChar !== closChar && sign.char === openChar) {
-			wait += 1
-			continue
-		}
-
-		if (sign.char === closChar) {
-			if (wait === 0) {
-				return sign
-			}
-			wait -= 1
-		}
-	}
-	return null
-}
-
 export const expandBlockSelection = (cursorPairHistory: Array<vscode.Selection>) => () => {
 	const editor = vscode.window.activeTextEditor
 
