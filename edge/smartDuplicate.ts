@@ -67,7 +67,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 	const childNodeRangeList: Array<NodeRange> = []
 	let createAction: (targetNodeRange: NodeRange) => (edit: vscode.TextEditorEdit) => void =
 		targetNodeRange => edit => {
-			const lineFeedOrSpace = getLineFeedOrDefault(targetNodeRange, ' ')
+			const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
 			edit.insert(targetNodeRange.range.start, targetNodeRange.node.getText() + ',' + lineFeedOrSpace)
 		}
 
@@ -89,7 +89,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 			childNodeRangeList.push(new NodeRange(childNode, editor.document))
 		})
 		createAction = targetNodeRange => edit => {
-			const lineFeedOrSpace = getLineFeedOrDefault(targetNodeRange, ' ')
+			const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
 			edit.insert(targetNodeRange.range.start, targetNodeRange.node.getText() + lineFeedOrSpace)
 		}
 
@@ -104,7 +104,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 			childNodeRangeList.push(new NodeRange(childNode, editor.document))
 		})
 		createAction = targetNodeRange => edit => {
-			const lineFeedOrSpace = getLineFeedOrDefault(targetNodeRange, ' ')
+			const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
 			const fullText = targetNodeRange.node.getText()
 			const semiColonNeeded = lineFeedOrSpace === ' ' && fullText.endsWith(';') === false
 
@@ -154,7 +154,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 		createAction = targetNodeRange => edit => {
 			const parentNode = parentNodeRange.node as ts.BinaryExpression
 			const operator = parentNode.operatorToken.getFullText()
-			const lineFeedOrSpace = getLineFeedOrDefault(targetNodeRange, ' ')
+			const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
 			edit.insert(targetNodeRange.range.start, targetNodeRange.node.getText() + operator + lineFeedOrSpace)
 		}
 
@@ -191,7 +191,51 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 				})
 			}
 		}
+
+	} else if (ts.isJsxAttributes(parentNodeRange.node)) {
+		parentNodeRange.node.forEachChild(childNode => {
+			childNodeRangeList.push(new NodeRange(childNode, editor.document))
+		})
+		createAction = targetNodeRange => edit => {
+			const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
+			edit.insert(targetNodeRange.range.start, targetNodeRange.node.getText() + lineFeedOrSpace)
+		}
+
+		// Edit the parent node as it caused a wrong calculation in `getLineFeedConditionally`
+		parentNodeRange = new NodeRange(parentNodeRange.node.parent.tagName, editor.document)
+
+	} else if (ts.isJsxElement(parentNodeRange.node) || ts.isJsxSelfClosingElement(parentNodeRange.node)) {
+		parentNodeRange.node.forEachChild(childNode => {
+			if (ts.isJsxAttributes(childNode) === false) {
+				childNodeRangeList.push(new NodeRange(childNode as ts.Node, editor.document))
+			}
+		})
+		createAction = targetNodeRange => edit => {
+			if (
+				ts.isJsxElement(parentNodeRange.node) && (targetNodeRange.node === parentNodeRange.node.openingElement || targetNodeRange.node === parentNodeRange.node.closingElement) ||
+				ts.isJsxSelfClosingElement(parentNodeRange.node) && targetNodeRange.node === parentNodeRange.node.tagName
+			) {
+				const lineFeedOrEmpty = getLineFeedConditionally(targetNodeRange, '')
+				edit.insert(parentNodeRange.range.start, parentNodeRange.node.getText() + lineFeedOrEmpty)
+
+			} else if (ts.isJsxText(targetNodeRange.node)) {
+				const lineFeed = getLineFeed(targetNodeRange)
+				const currentLine = editor.document.lineAt(editor.selection.start.line)
+				const currentLineExcludingIndentation = editor.document.lineAt(editor.selection.start.line).range.with({
+					start: currentLine.range.start.with({ character: currentLine.firstNonWhitespaceCharacterIndex })
+				})
+				const lineOfText = targetNodeRange.range.intersection(currentLineExcludingIndentation)
+				edit.insert(lineOfText.start, editor.document.getText(lineOfText).trim() + lineFeed)
+
+			} else {
+				const lineFeedOrEmpty = getLineFeedConditionally(targetNodeRange, '')
+				edit.insert(targetNodeRange.range.start, targetNodeRange.node.getText() + lineFeedOrEmpty)
+			}
+		}
 	}
+
+	// Remove empty text elements as it caused a wrong calculation in `getLineFeedConditionally`
+	_.remove(childNodeRangeList, item => ts.isJsxText(item.node) && item.node.containsOnlyWhiteSpaces)
 
 	if (childNodeRangeList.length === 0) {
 		return null
@@ -217,7 +261,16 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 		}
 	}
 
-	function getLineFeedOrDefault(targetNodeRange: NodeRange, defaultValue: string) {
+	function getLineFeed(targetNodeRange: NodeRange) {
+		const newLine = editor.document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n'
+		const indentation = editor.document.getText(new vscode.Range(
+			targetNodeRange.range.start.with({ character: 0 }),
+			targetNodeRange.range.start.with({ character: editor.document.lineAt(targetNodeRange.range.start.line).firstNonWhitespaceCharacterIndex }),
+		))
+		return newLine + indentation
+	}
+
+	function getLineFeedConditionally(targetNodeRange: NodeRange, defaultValue: string) {
 		let lineFeedNeeded = false
 		if (childNodeRangeList.length === 1) {
 			lineFeedNeeded = parentNodeRange.range.end.line !== targetNodeRange.range.start.line
@@ -229,13 +282,6 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 		if (!lineFeedNeeded) {
 			return defaultValue
 		}
-
-		const newLine = editor.document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n'
-		const textBeforeTheGivenNode = editor.document.getText(new vscode.Range(
-			new vscode.Position(targetNodeRange.range.start.line, 0),
-			new vscode.Position(targetNodeRange.range.start.line, targetNodeRange.range.start.character),
-		))
-		const indentation = textBeforeTheGivenNode.match(/^([\s\t]*)/)[1]
-		return newLine + indentation
+		return getLineFeed(targetNodeRange)
 	}
 }

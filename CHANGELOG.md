@@ -1,3 +1,6 @@
+### 5.1.0
+- Amended `cosmicCursor.smartDuplicate` command so it supports JSX syntax.
+
 ### 5.0.0
 - Added `cosmicCursor.smartDuplicate` command.
 
