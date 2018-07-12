@@ -12,10 +12,16 @@ export const duplicate = async () => {
 		return vscode.commands.executeCommand('editor.action.copyLinesDownAction')
 	}
 
+	const currentLine = editor.document.lineAt(editor.selection.active.line)
+
+	// In case of empty lines
+	if (currentLine.text.trim().length === 0) {
+		return vscode.commands.executeCommand('editor.action.copyLinesDownAction')
+	}
+
 	if (/^((java|type)script(react)?|jsonc)$/.test(editor.document.languageId)) {
 		// In case of single-line comments
-		const currentLine = editor.document.lineAt(editor.selection.active.line).text
-		if (currentLine.trim().startsWith('//')) {
+		if (currentLine.text.trim().startsWith('//')) {
 			return vscode.commands.executeCommand('editor.action.copyLinesDownAction')
 		}
 
@@ -45,21 +51,22 @@ export const duplicate = async () => {
 				edit.insert(startOfComment, editor.document.getText(new vscode.Range(startOfComment, endOfComment)) + lineFeedOrEmpty)
 			})
 		}
-	}
 
-	const sortedNodeRangeList = expandBlockSelectionForTypeScript(editor)
-	if (sortedNodeRangeList) {
-		for (let index = sortedNodeRangeList.length - 1; index >= 0; index--) {
-			const parentNodeRange = sortedNodeRangeList[index]
+		// In case of syntactic copies
+		const sortedNodeRangeList = expandBlockSelectionForTypeScript(editor)
+		if (sortedNodeRangeList) {
+			for (let index = sortedNodeRangeList.length - 1; index >= 0; index--) {
+				const parentNodeRange = sortedNodeRangeList[index]
 
-			const action = createActionByNodeType(parentNodeRange, editor)
-			if (action) {
-				return editor.edit(action)
+				const action = createActionByNodeType(parentNodeRange, editor)
+				if (action) {
+					return editor.edit(action)
+				}
 			}
 		}
 	}
 
-	// Copy normally as the document is not recognized
+	// Copy normally
 	return vscode.commands.executeCommand('editor.action.copyLinesDownAction')
 }
 
