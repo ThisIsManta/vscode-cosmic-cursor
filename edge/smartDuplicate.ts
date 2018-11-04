@@ -19,7 +19,7 @@ export const duplicate = async () => {
 		return vscode.commands.executeCommand('editor.action.copyLinesDownAction')
 	}
 
-	if (/^((java|type)script(react)?|jsonc)$/.test(editor.document.languageId)) {
+	if (/^((java|type)script(react)?|jsonc?)$/.test(editor.document.languageId)) {
 		// In case of single-line comments
 		if (currentLine.text.trim().startsWith('//')) {
 			return vscode.commands.executeCommand('editor.action.copyLinesDownAction')
@@ -75,7 +75,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 	let createAction: (targetNodeRange: NodeRange) => (edit: vscode.TextEditorEdit) => void =
 		targetNodeRange => edit => {
 			const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
-			edit.insert(targetNodeRange.range.start, targetNodeRange.node.getText() + ',' + lineFeedOrSpace)
+			edit.insert(targetNodeRange.range.start, getFullText(targetNodeRange) + ',' + lineFeedOrSpace)
 		}
 
 	if (
@@ -97,7 +97,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 		})
 		createAction = targetNodeRange => edit => {
 			const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
-			edit.insert(targetNodeRange.range.start, targetNodeRange.node.getText() + lineFeedOrSpace)
+			edit.insert(targetNodeRange.range.start, getFullText(targetNodeRange) + lineFeedOrSpace)
 		}
 
 	} else if (
@@ -112,7 +112,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 		})
 		createAction = targetNodeRange => edit => {
 			const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
-			const fullText = targetNodeRange.node.getText()
+			const fullText = getFullText(targetNodeRange)
 			const semiColonNeeded = lineFeedOrSpace === ' ' && fullText.endsWith(';') === false
 
 			if (ts.isArrowFunction(parentNodeRange.node)) {
@@ -162,7 +162,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 			const parentNode = parentNodeRange.node as ts.BinaryExpression
 			const operator = parentNode.operatorToken.getFullText()
 			const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
-			edit.insert(targetNodeRange.range.start, targetNodeRange.node.getText() + operator + lineFeedOrSpace)
+			edit.insert(targetNodeRange.range.start, getFullText(targetNodeRange) + operator + lineFeedOrSpace)
 		}
 
 	} else if (ts.isIfStatement(parentNodeRange.node)) {
@@ -183,7 +183,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 				edit.insert(parentNodeRange.range.start, thenText)
 
 			} else if (ts.isIfStatement(targetNodeRange.node)) { // In case of else-if-block
-				let thenText = targetNodeRange.node.getText()
+				let thenText = getFullText(targetNodeRange)
 				if (targetNodeRange.node.elseStatement) {
 					const elseText = targetNodeRange.node.elseStatement.getText()
 					thenText = thenText.substring(0, thenText.length - elseText.length)
@@ -191,7 +191,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 				edit.insert(targetNodeRange.range.start, thenText)
 
 			} else { // In case of else-block
-				edit.insert(targetNodeRange.range.start, 'if () ' + targetNodeRange.node.getText() + ' else ')
+				edit.insert(targetNodeRange.range.start, 'if () ' + getFullText(targetNodeRange) + ' else ')
 				const condition = targetNodeRange.range.start.translate({ characterDelta: 'if ('.length })
 				_.defer(() => {
 					editor.selections = [new vscode.Selection(condition, condition)]
@@ -205,7 +205,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 		})
 		createAction = targetNodeRange => edit => {
 			const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
-			edit.insert(targetNodeRange.range.start, targetNodeRange.node.getText() + lineFeedOrSpace)
+			edit.insert(targetNodeRange.range.start, getFullText(targetNodeRange) + lineFeedOrSpace)
 		}
 
 		// Edit the parent node as it caused a wrong calculation in `getLineFeedConditionally`
@@ -236,7 +236,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 
 			} else {
 				const lineFeedOrEmpty = getLineFeedConditionally(targetNodeRange, '')
-				edit.insert(targetNodeRange.range.start, targetNodeRange.node.getText() + lineFeedOrEmpty)
+				edit.insert(targetNodeRange.range.start, getFullText(targetNodeRange) + lineFeedOrEmpty)
 			}
 		}
 	}
@@ -266,6 +266,13 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 		} else if (currentLine.text.substring(editor.selection.active.character).trim().length === 0) {
 			return createAction(_.last(lineMatchingNodeRangeList))
 		}
+	}
+
+	function getFullText(targetNodeRange: NodeRange) {
+		if (_.has(targetNodeRange.node, 'text') === false) {
+			return editor.document.getText(targetNodeRange.range)
+		}
+		return targetNodeRange.node.getText()
 	}
 
 	function getLineFeed(targetNodeRange: NodeRange) {

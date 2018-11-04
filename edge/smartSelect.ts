@@ -41,10 +41,10 @@ export const shrinkBlockSelection = (cursorPairHistory: Array<vscode.Selection>)
 
 export const expandBlockSelectionForTypeScript = (editor: vscode.TextEditor) => {
 	let rootNode: ts.Node
-	if (/(java|type)script(react)?/i.test(editor.document.languageId)) {
-		rootNode = ts.createSourceFile(fp.basename(editor.document.fileName), editor.document.getText(), ts.ScriptTarget.ES2015, true)
+	if (/^(java|type)script(react)?$/i.test(editor.document.languageId)) {
+		rootNode = ts.createSourceFile(fp.basename(editor.document.fileName), editor.document.getText(), ts.ScriptTarget.ESNext, true)
 
-	} else if (editor.document.languageId === 'json') {
+	} else if (/^jsonc?$/i.test(editor.document.languageId)) {
 		rootNode = ts.parseJsonText(fp.basename(editor.document.fileName), editor.document.getText())
 	}
 
