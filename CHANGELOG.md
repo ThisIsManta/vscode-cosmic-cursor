@@ -1,3 +1,6 @@
+### 5.1.1
+- Fixed `cosmicCursor.smartDuplicate` command so it supports JSON file.
+
 ### 5.1.0
 - Amended `cosmicCursor.smartDuplicate` command so it supports JSX syntax.
 - Amended `cosmicCursor.smartDuplicate` command so it copies empty lines normally.
