@@ -24,7 +24,7 @@
         "theme": "dark"
     },
     "engines": {
-        "vscode": "^1.22.2"
+        "vscode": "^1.31.0"
     },
     "activationEvents": [
         "*"
@@ -97,13 +97,13 @@
         "postversion": "git push --tags --quiet origin master:master"
     },
     "devDependencies": {
-        "@types/lodash": "^4.14.110",
+        "@types/lodash": "^4.14.121",
         "@types/node": "^8.0.0",
         "@types/typescript": "^2.0.0",
-        "vscode": "^1.1.18"
+        "vscode": "^1.1.29"
     },
     "dependencies": {
-        "lodash": "^4.17.10",
-        "typescript": "^2.9.2"
+        "lodash": "^4.17.11",
+        "typescript": "^3.3.3"
     }
 }
