@@ -49,7 +49,7 @@ export const expandBlockSelectionForTypeScript = (editor: vscode.TextEditor) => 
 	}
 
 	if (!rootNode) {
-		return null
+		return []
 	}
 
 	// Travel through the given root node and return an array of range that fall into the given selection
@@ -72,10 +72,10 @@ export const expandBlockSelectionForTypeScript = (editor: vscode.TextEditor) => 
 }
 
 export class NodeRange {
-	node: ts.Node
-	range: vscode.Range
+	readonly node: ts.Node | null
+	readonly range: vscode.Range
 
-	constructor(node: ts.Node, document: vscode.TextDocument) {
+	constructor(node: ts.Node | null, document: vscode.TextDocument) {
 		this.node = node
 		this.range = new vscode.Range(
 			document.positionAt(node.pos),

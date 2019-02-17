@@ -53,15 +53,11 @@ export const duplicate = async () => {
 		}
 
 		// In case of syntactic copies
-		const sortedNodeRangeList = expandBlockSelectionForTypeScript(editor)
-		if (sortedNodeRangeList) {
-			for (let index = sortedNodeRangeList.length - 1; index >= 0; index--) {
-				const parentNodeRange = sortedNodeRangeList[index]
-
-				const action = createActionByNodeType(parentNodeRange, editor)
-				if (action) {
-					return editor.edit(action)
-				}
+		const sortedNodeRangeList = expandBlockSelectionForTypeScript(editor).reverse()
+		for (const parentNodeRange of sortedNodeRangeList) {
+			const action = createActionByNodeType(parentNodeRange, editor)
+			if (action) {
+				return editor.edit(action)
 			}
 		}
 	}
@@ -72,11 +68,10 @@ export const duplicate = async () => {
 
 const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextEditor) => {
 	const childNodeRangeList: Array<NodeRange> = []
-	let createAction: (targetNodeRange: NodeRange) => (edit: vscode.TextEditorEdit) => void =
-		targetNodeRange => edit => {
-			const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
-			edit.insert(targetNodeRange.range.start, getFullText(targetNodeRange) + ',' + lineFeedOrSpace)
-		}
+	let createAction = (targetNodeRange: NodeRange) => (edit: vscode.TextEditorEdit) => {
+		const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
+		edit.insert(targetNodeRange.range.start, getFullText(targetNodeRange) + ',' + lineFeedOrSpace)
+	}
 
 	if (
 		ts.isObjectLiteralExpression(parentNodeRange.node) ||
@@ -86,15 +81,72 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 			childNodeRangeList.push(new NodeRange(childNode, editor.document))
 		})
 
-	} else if (ts.isCallExpression(parentNodeRange.node)) {
-		parentNodeRange.node.arguments.forEach(childNode => {
-			childNodeRangeList.push(new NodeRange(childNode, editor.document))
+	} else if ( // In case the cursor is at the name of the chaining method, for example "then" in Promise().then().catch()
+		ts.isIdentifier(parentNodeRange.node) &&
+		parentNodeRange.node.parent && ts.isPropertyAccessExpression(parentNodeRange.node.parent) &&
+		parentNodeRange.node.parent.name === parentNodeRange.node &&
+		parentNodeRange.node.parent.parent && ts.isCallExpression(parentNodeRange.node.parent.parent)
+	) {
+		childNodeRangeList.push({
+			node: null,
+			range: new vscode.Range(
+				editor.document.positionAt(parentNodeRange.node.parent.expression.end),
+				editor.document.positionAt(parentNodeRange.node.parent.parent.end)
+			)
 		})
+		createAction = targetNodeRange => edit => {
+			edit.insert(targetNodeRange.range.start, getFullText(targetNodeRange))
+		}
+
+	} else if (ts.isCallExpression(parentNodeRange.node)) {
+		if ( // In case the cursor is at the end of the chaining method
+			parentNodeRange.node.parent && ts.isPropertyAccessExpression(parentNodeRange.node.parent) &&
+			ts.isPropertyAccessExpression(parentNodeRange.node.expression) &&
+			parentNodeRange.node.expression.expression
+		) {
+			childNodeRangeList.push({
+				node: null,
+				range: new vscode.Range(
+					editor.document.positionAt(parentNodeRange.node.expression.expression.end),
+					editor.document.positionAt(parentNodeRange.node.end)
+				)
+			})
+			createAction = targetNodeRange => edit => {
+				edit.insert(targetNodeRange.range.start, getFullText(targetNodeRange))
+			}
+
+		} else {
+			parentNodeRange.node.arguments.forEach(childNode => {
+				childNodeRangeList.push(new NodeRange(childNode, editor.document))
+			})
+		}
+
+	} else if (ts.isParameter(parentNodeRange.node)) {
+		childNodeRangeList.push(new NodeRange(parentNodeRange.node, editor.document))
+
+		if (
+			ts.isArrowFunction(parentNodeRange.node.parent) &&
+			parentNodeRange.node.parent.parameters.length === 1 &&
+			parentNodeRange.node.parent.getFullText().trim().startsWith('(') === false
+		) {
+			createAction = targetNodeRange => edit => {
+				const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
+				edit.insert(targetNodeRange.range.start, '(' + getFullText(targetNodeRange) + ',' + lineFeedOrSpace)
+				edit.insert(targetNodeRange.range.end, ')')
+			}
+		}
 
 	} else if (ts.isCaseClause(parentNodeRange.node)) {
 		parentNodeRange.node.statements.forEach(childNode => {
 			childNodeRangeList.push(new NodeRange(childNode, editor.document))
 		})
+		createAction = targetNodeRange => edit => {
+			const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
+			edit.insert(targetNodeRange.range.start, getFullText(targetNodeRange) + lineFeedOrSpace)
+		}
+
+	} else if (ts.isFunctionDeclaration(parentNodeRange.node)) {
+		childNodeRangeList.push(parentNodeRange)
 		createAction = targetNodeRange => edit => {
 			const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
 			edit.insert(targetNodeRange.range.start, getFullText(targetNodeRange) + lineFeedOrSpace)
@@ -242,7 +294,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 	}
 
 	// Remove empty text elements as it caused a wrong calculation in `getLineFeedConditionally`
-	_.remove(childNodeRangeList, item => ts.isJsxText(item.node) && item.node.containsOnlyWhiteSpaces)
+	_.remove(childNodeRangeList, item => item.node && ts.isJsxText(item.node) && item.node.containsOnlyWhiteSpaces)
 
 	if (childNodeRangeList.length === 0) {
 		return null
