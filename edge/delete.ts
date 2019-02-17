@@ -133,15 +133,12 @@ export const deleteRight = async () => {
 			const betweenTheLines = editor.document.getText(new vscode.Range(cursor.active, thisLine.range.end))
 			if (betweenTheLines.trim().length === 0 && nextLine.firstNonWhitespaceCharacterIndex > 0) {
 				await editor.edit(edit => {
-					const currentPositionAlreadyHasSpaceBumper = (
-						cursor.active.character === 0 ||
-						editor.document.getText(new vscode.Range(cursor.active.translate({ characterDelta: -1 }), cursor.active)) === ' '
-					)
-					const nextNonWhitespaceCharacterIsSign = /\W/.test(nextLine.text.charAt(nextLine.firstNonWhitespaceCharacterIndex))
+					const prevChar = cursor.active.character === 0 ? '' : editor.document.getText(new vscode.Range(cursor.active.translate({ characterDelta: -1 }), cursor.active))
+					const nextChar = nextLine.text.charAt(nextLine.firstNonWhitespaceCharacterIndex)
 					edit.replace(new vscode.Range(
 						cursor.active,
 						new vscode.Position(nextLine.lineNumber, nextLine.firstNonWhitespaceCharacterIndex),
-					), currentPositionAlreadyHasSpaceBumper || nextNonWhitespaceCharacterIsSign ? '' : ' ')
+					), /(\w|\(|\{|\[)/.test(prevChar) && /\w/.test(nextChar) || prevChar === '=' ? ' ' : '')
 				})
 				continue
 			}

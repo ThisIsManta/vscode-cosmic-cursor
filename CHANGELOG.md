@@ -1,3 +1,6 @@
+### 5.1.2
+- Amended `cosmicCursor.deleteRight` command so it spares a white-space after an opening curly/square bracket.
+
 ### 5.1.1
 - Fixed `cosmicCursor.smartDuplicate` command so it supports JSON file.
 
