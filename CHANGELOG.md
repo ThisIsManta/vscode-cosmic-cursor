@@ -1,3 +1,6 @@
+### 5.2.1
+- Fixed `cosmicCursor.deleteLeft` command so it deletes a white-space after a non-white-space-starting line.
+
 ### 5.2.0
 - Amended `cosmicCursor.deleteRight` command so it spares a white-space after an opening curly/square bracket.
 - Amended `cosmicCursor.smartDuplicate` command so it supports more JavaScript/TypeScript syntax.

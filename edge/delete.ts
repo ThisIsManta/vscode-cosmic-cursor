@@ -1,3 +1,4 @@
+import * as _ from 'lodash'
 import * as vscode from 'vscode'
 
 export const deleteLeft = async () => {
@@ -29,10 +30,8 @@ export const deleteLeft = async () => {
 					prevLine = editor.document.lineAt(prevLine.lineNumber - 1)
 				}
 				const prevSpan = prevLine.text.match(/^(\s|\t)*/)[0]
-				if (thisSpan.length > prevSpan.length) {
-					const tabLong = editor.options.insertSpaces === true
-						? (typeof editor.options.tabSize === 'number' ? editor.options.tabSize : 1)
-						: 1
+				const tabLong = editor.options.insertSpaces && _.isNumber(editor.options.tabSize) ? editor.options.tabSize : 1
+				if (thisSpan.length > prevSpan.length && cursor.active.character > tabLong) {
 					await editor.edit(edit => {
 						edit.delete(new vscode.Range(
 							cursor.active.translate({ characterDelta: -tabLong }),
