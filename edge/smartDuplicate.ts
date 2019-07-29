@@ -294,7 +294,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 	}
 
 	// Remove empty text elements as it caused a wrong calculation in `getLineFeedConditionally`
-	_.remove(childNodeRangeList, item => item.node && ts.isJsxText(item.node) && item.node.containsOnlyWhiteSpaces)
+	_.remove(childNodeRangeList, item => item.node && ts.isJsxText(item.node) && item.node.containsOnlyTriviaWhiteSpaces)
 
 	if (childNodeRangeList.length === 0) {
 		return null
@@ -321,10 +321,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 	}
 
 	function getFullText(targetNodeRange: NodeRange) {
-		if (_.has(targetNodeRange.node, 'text') === false) {
-			return editor.document.getText(targetNodeRange.range)
-		}
-		return targetNodeRange.node.getText()
+		return editor.document.getText(targetNodeRange.range)
 	}
 
 	function getLineFeed(targetNodeRange: NodeRange) {

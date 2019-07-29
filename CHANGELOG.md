@@ -1,5 +1,6 @@
 ### 5.2.1
 - Fixed `cosmicCursor.deleteLeft` command so it deletes a white-space after a non-white-space-starting line.
+- Fixed `cosmicCursor.smartDuplicate` command so it duplicates a string element in an array for JSON file.
 
 ### 5.2.0
 - Amended `cosmicCursor.deleteRight` command so it spares a white-space after an opening curly/square bracket.
