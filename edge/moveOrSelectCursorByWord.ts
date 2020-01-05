@@ -5,13 +5,16 @@ const rsPairs = [
 	'\\(\\s*\\)',
 	'\\{\\s*\\}',
 	'\\[\\s*\\]',
+	'\'\\s*\'',
+	'"\\s*"',
+	'`\\s*`',
 ]
 const rePairs = RegExp(rsPairs.join('|'))
 
 const rsQuotes = [
 	'\'', '"', '`'
 ]
-const reQuotes = RegExp(rsQuotes.join('|'), 'g')
+const reQuotes = RegExp(rsQuotes.join('|'))
 
 // The following code is copied from https://github.com/lodash/lodash/blob/4.17.4/lodash.js#L206
 const rsAstralRange = '\\ud800-\\udfff',
@@ -31,7 +34,6 @@ const rsAstralRange = '\\ud800-\\udfff',
 
 // The following code is copied from https://github.com/lodash/lodash/blob/4.17.4/lodash.js#L222
 const rsApos = "['\u2019]",
-	rsAstral = '[' + rsAstralRange + ']',
 	rsBreak = '[' + rsBreakRange + ']',
 	rsCombo = '[' + rsComboRange + ']',
 	rsDigits = '\\d+',
@@ -57,8 +59,7 @@ const rsMiscLower = '(?:' + rsLower + '|' + rsMisc + ')',
 	rsOrdLower = '\\d*(?:(?:1st|2nd|3rd|(?![123])\\dth)\\b)',
 	rsOrdUpper = '\\d*(?:(?:1ST|2ND|3RD|(?![123])\\dTH)\\b)',
 	rsSeq = rsOptVar + reOptMod + rsOptJoin,
-	rsEmoji = '(?:' + [rsDingbat, rsRegional, rsSurrPair].join('|') + ')' + rsSeq,
-	rsSymbol = '(?:' + [rsNonAstral + rsCombo + '?', rsCombo, rsRegional, rsSurrPair, rsAstral].join('|') + ')'
+	rsEmoji = '(?:' + [rsDingbat, rsRegional, rsSurrPair].join('|') + ')' + rsSeq
 
 // The following code is copied and slightly modified from https://github.com/lodash/lodash/blob/4.17.4/lodash.js#L265
 const reUnicodeWord = RegExp([
@@ -70,7 +71,6 @@ const reUnicodeWord = RegExp([
 	rsOrdLower,
 	rsDigits,
 	rsEmoji,
-	...rsQuotes, // Note that this is my improvisation
 	...rsPairs, // Note that this is my improvisation
 ].join('|'), 'g')
 
@@ -101,16 +101,26 @@ export const moveOrSelectCursorByWordLeft = (select: boolean) => async () => {
 			const lastLong = lastWord.length
 			const lastRank = lineText.lastIndexOf(lastWord)
 
-			if ((reQuotes.test(lastWord) || rePairs.test(lastWord)) && lastRank + 1 !== cursor.active.character) {
+			if (rePairs.test(lastWord) && lastRank + 1 !== cursor.active.character) {
 				return newCursorOrSelection(cursor, lineRank, lastRank + 1, select)
 			}
 
-			if (lastRank + lastLong === cursor.active.character || select && /^(\s+|\.)$/.test(lineText.substring(lastRank + lastLong))) {
-				return newCursorOrSelection(cursor, lineRank, lastRank, select)
-
-			} else {
-				return newCursorOrSelection(cursor, lineRank, lastRank + lastLong, select)
+			const checkIfCursorIsAtNextWord = () => {
+				const restText = editor.document.getText(new vscode.Range(
+					cursor.active,
+					editor.document.lineAt(cursor.active.line).range.end
+				))
+				const restList = splitWordsOrPairs(restText, select)
+				if (restList.length > 0 && restText.indexOf(restList[0]) === 0) {
+					return true
+				}
 			}
+
+			if (lastRank + lastLong === cursor.active.character || /^(\s+|\.)$/.test(lineText.substring(lastRank + lastLong)) || checkIfCursorIsAtNextWord()) {
+				return newCursorOrSelection(cursor, lineRank, lastRank, select)
+			}
+
+			return newCursorOrSelection(cursor, lineRank, lastRank + lastLong, select)
 
 		} else if (lineText.trim().length > 0) {
 			return newCursorOrSelection(cursor, lineRank, editor.document.lineAt(lineRank).firstNonWhitespaceCharacterIndex, select)
@@ -160,16 +170,26 @@ export const moveOrSelectCursorByWordRight = (select: boolean) => async () => {
 
 			const baseRank = cursor.active.character
 
-			if ((reQuotes.test(leadWord) || rePairs.test(leadWord)) && baseRank + leadRank + 1 !== cursor.active.character) {
+			if (rePairs.test(leadWord) && baseRank + leadRank + 1 !== cursor.active.character) {
 				return newCursorOrSelection(cursor, lineRank, baseRank + leadRank + 1, select)
 			}
 
-			if (leadRank === 0 || select && /^(\s+|\.)$/.test(lineText.substring(0, leadRank))) {
-				return newCursorOrSelection(cursor, lineRank, baseRank + leadRank + leadLong, select)
-
-			} else {
-				return newCursorOrSelection(cursor, lineRank, baseRank + leadRank, select)
+			const checkIfCursorIsAtLastWord = () => {
+				const restText = editor.document.getText(new vscode.Range(
+					cursor.active.with({ character: 0 }),
+					cursor.active,
+				))
+				const restList = splitWordsOrPairs(restText, select)
+				if (restList.length > 0 && restText.lastIndexOf(_.last(restList)) + _.last(restList).length === restText.length) {
+					return true
+				}
 			}
+
+			if (leadRank === 0 || /^(\s+|\.)$/.test(lineText.substring(0, leadRank)) || checkIfCursorIsAtLastWord()) {
+				return newCursorOrSelection(cursor, lineRank, baseRank + leadRank + leadLong, select)
+			}
+
+			return newCursorOrSelection(cursor, lineRank, baseRank + leadRank, select)
 
 		} else if (lineText.trim().length > 0) {
 			return newCursorOrSelection(cursor, lineRank, editor.document.lineAt(lineRank).range.end.character, select)

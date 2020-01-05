@@ -1,5 +1,3 @@
-# Cosmic Cursor
-
 **Cosmic Cursor** is a Visual Studio Code extension that overrides some cursor-moving keyboard shortcuts.
 
 ## Basic usage
