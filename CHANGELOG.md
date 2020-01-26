@@ -1,5 +1,6 @@
 ### 5.3.0
 - Amended `cursorWordLeft` and `cursorWordRight` commands so that they leap over white-spaces.
+- Fixed `deleteLeft` and `deleteRight` commands so they work correctly with multi-selections.
 
 ### 5.2.1
 - Fixed `deleteLeft` command so it deletes a white-space after a non-white-space-starting line.
