@@ -1,6 +1,7 @@
 import * as _ from 'lodash'
 import * as ts from 'typescript'
 import * as vscode from 'vscode'
+import { parseTypeScript } from './smartSelect'
 
 export const smartDelete = async () => {
 	const editor = vscode.window.activeTextEditor
@@ -13,12 +14,10 @@ export const smartDelete = async () => {
 		return vscode.commands.executeCommand('deleteLeft')
 	}
 
-	const kind = getScriptKind(editor.document)
-	if (kind === undefined) {
+	const rootNode = parseTypeScript(editor.document)
+	if (!rootNode) {
 		return vscode.commands.executeCommand('deleteLeft')
 	}
-
-	const codeTree = ts.createSourceFile(editor.document.fileName, editor.document.getText(), ts.ScriptTarget.ESNext, true, kind)
 
 	let cursor = editor.selection.active
 	const line = editor.document.lineAt(editor.selection.active.line)
@@ -28,7 +27,7 @@ export const smartDelete = async () => {
 		cursor = new vscode.Position(line.lineNumber, line.text.trimRight().length)
 	}
 
-	const ranges = getDeletingRanges(codeTree, editor.document.offsetAt(cursor), createShiftingFunctions(editor.document))
+	const ranges = getDeletingRanges(rootNode, editor.document.offsetAt(cursor), createShiftingFunctions(editor.document))
 	if (!ranges) {
 		return vscode.commands.executeCommand('deleteLeft')
 	}

@@ -39,15 +39,22 @@ export const shrinkBlockSelection = (cursorPairHistory: Array<vscode.Selection>)
 	}
 }
 
-export const expandBlockSelectionForTypeScript = (editor: vscode.TextEditor) => {
-	let rootNode: ts.Node
-	if (/^(java|type)script(react)?$/i.test(editor.document.languageId)) {
-		rootNode = ts.createSourceFile(fp.basename(editor.document.fileName), editor.document.getText(), ts.ScriptTarget.ESNext, true)
-
-	} else if (/^jsonc?$/i.test(editor.document.languageId)) {
-		rootNode = ts.parseJsonText(fp.basename(editor.document.fileName), editor.document.getText())
+export const parseTypeScript = (document: vscode.TextDocument) => {
+	if (document.languageId === 'json') {
+		return ts.parseJsonText(fp.basename(document.fileName), document.getText())
 	}
 
+	if (/^javascript(react)?$/.test(document.languageId)) {
+		return ts.createSourceFile(fp.basename(document.fileName), document.getText(), ts.ScriptTarget.ESNext, true, document.languageId.endsWith('react') ? ts.ScriptKind.JSX : ts.ScriptKind.JS)
+	}
+
+	if (/^typescript(react)?$/.test(document.languageId)) {
+		return ts.createSourceFile(fp.basename(document.fileName), document.getText(), ts.ScriptTarget.ESNext, true, document.languageId.endsWith('react') ? ts.ScriptKind.TSX : ts.ScriptKind.TS)
+	}
+}
+
+export const expandBlockSelectionForTypeScript = (editor: vscode.TextEditor) => {
+	const rootNode = parseTypeScript(editor.document)
 	if (!rootNode) {
 		return []
 	}
