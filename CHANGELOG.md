@@ -1,4 +1,5 @@
 ### 5.3.0
+- Added `smartDelete` command.
 - Amended `cursorWordLeft` and `cursorWordRight` commands so that they leap over white-spaces.
 - Fixed `deleteLeft` and `deleteRight` commands so they work correctly with multi-selections.
 
