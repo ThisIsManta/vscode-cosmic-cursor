@@ -1,3 +1,6 @@
+### 5.4.0
+- Removed the keybinding for `smartDelete` command.
+
 ### 5.3.0
 - Added `smartDelete` command.
 - Amended `cursorWordLeft` and `cursorWordRight` commands so that they leap over white-spaces.

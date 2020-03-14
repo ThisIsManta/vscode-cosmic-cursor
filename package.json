@@ -83,11 +83,6 @@
                 "when": "editorTextFocus && !editorReadonly"
             },
             {
-                "command": "cosmicCursor.smartDelete",
-                "key": "shift+backspace",
-                "when": "editorTextFocus && !editorReadonly"
-            },
-            {
                 "command": "cosmicCursor.deleteRight",
                 "key": "delete",
                 "when": "editorTextFocus && !editorReadonly"
