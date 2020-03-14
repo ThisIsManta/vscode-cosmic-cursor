@@ -1,5 +1,6 @@
 ### 5.4.0
 - Removed the keybinding for `smartDelete` command.
+- Amended `smartDuplicate` command so it support copying type annotations.
 
 ### 5.3.0
 - Added `smartDelete` command.

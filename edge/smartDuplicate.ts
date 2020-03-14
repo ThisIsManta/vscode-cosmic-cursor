@@ -145,7 +145,11 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 			edit.insert(targetNodeRange.range.start, getFullText(targetNodeRange) + lineFeedOrSpace)
 		}
 
-	} else if (ts.isFunctionDeclaration(parentNodeRange.node)) {
+	} else if (
+		ts.isFunctionDeclaration(parentNodeRange.node) ||
+		ts.isTypeAliasDeclaration(parentNodeRange.node) ||
+		ts.isInterfaceDeclaration(parentNodeRange.node)
+	) {
 		childNodeRangeList.push(parentNodeRange)
 		createAction = targetNodeRange => edit => {
 			const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
@@ -249,6 +253,18 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 					editor.selections = [new vscode.Selection(condition, condition)]
 				})
 			}
+		}
+
+	} else if (ts.isTypeLiteralNode(parentNodeRange.node)) {
+		parentNodeRange.node.members.forEach(childNode => {
+			childNodeRangeList.push(new NodeRange(childNode, editor.document))
+		})
+		createAction = targetNodeRange => edit => {
+			const separatorPattern = /(?:;|,)$/
+			const separator = _.last(_.compact(childNodeRangeList.map(child => getFullText(child).match(separatorPattern)?.[0]))) ?? ''
+			const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
+			const fullText = _.trim(getFullText(targetNodeRange).replace(separatorPattern, ''))
+			edit.insert(targetNodeRange.range.start, fullText + separator + lineFeedOrSpace)
 		}
 
 	} else if (ts.isJsxAttributes(parentNodeRange.node)) {
