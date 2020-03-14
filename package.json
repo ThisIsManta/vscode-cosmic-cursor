@@ -98,11 +98,11 @@
     },
     "devDependencies": {
         "@types/lodash": "^4.14.149",
-        "@types/node": "^12.12.22",
+        "@types/node": "^13.8.0",
         "vscode": "^1.1.36"
     },
     "dependencies": {
         "lodash": "^4.17.15",
-        "typescript": "^3.7.4"
+        "typescript": "^3.8.3"
     }
 }
