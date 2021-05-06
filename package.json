@@ -102,7 +102,7 @@
         "vscode": "^1.1.36"
     },
     "dependencies": {
-        "lodash": "^4.17.15",
+        "lodash": "^4.17.21",
         "typescript": "^3.8.3"
     }
 }
