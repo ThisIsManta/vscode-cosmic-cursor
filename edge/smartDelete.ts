@@ -1,4 +1,8 @@
-import * as _ from 'lodash'
+import sortBy from 'lodash/sortBy'
+import first from 'lodash/first'
+import last from 'lodash/last'
+import isObject from 'lodash/isObject'
+import isArrayLike from 'lodash/isArrayLike'
 import * as ts from 'typescript'
 import * as vscode from 'vscode'
 import { parseTypeScript } from './smartSelect'
@@ -32,9 +36,8 @@ export const smartDelete = async () => {
 		return vscode.commands.executeCommand('deleteLeft')
 	}
 
-	const safeRanges = _.chain(ranges)
-		.sortBy(pair => pair[0])
-		.reduce((list, currentPair, index, sortedPairs) => {
+	const safeRanges = sortBy(ranges, pair => pair[0])
+		.reduce<Array<[number, number]>>((list, currentPair, index, sortedPairs) => {
 			const previousPair = sortedPairs[index - 1]
 			if (previousPair && previousPair[1] > currentPair[0]) {
 				// Merge overlapped ranges
@@ -56,7 +59,6 @@ export const smartDelete = async () => {
 			}
 			return range
 		})
-		.value()
 
 	return editor.edit(edit => {
 		for (const range of safeRanges) {
@@ -82,7 +84,7 @@ function getScriptKind(document: vscode.TextDocument) {
 }
 
 function isNodeArray(node: any): node is ts.NodeArray<ts.Node> {
-	return _.isArrayLike(node) && node.pos !== undefined && node.end !== undefined
+	return isArrayLike(node) && node.pos !== undefined && node.end !== undefined
 }
 
 function createShiftingFunctions(document: vscode.TextDocument) {
@@ -127,7 +129,7 @@ function getDeletingRanges(node: ts.Node, index: number, shiftingFunctions: Retu
 		}
 
 		const childNode: ts.Node | ts.NodeArray<ts.Node> = node[key]
-		if (!_.isObject(childNode)) {
+		if (!isObject(childNode)) {
 			continue
 		}
 
@@ -332,14 +334,14 @@ function getDeletingRanges(node: ts.Node, index: number, shiftingFunctions: Retu
 		if (node.elseStatement) {
 			// Delete " else "
 			ranges.push(
-				[_.last(ranges).end, XL(node.elseStatement.getFirstToken())],
+				[last(ranges).end, XL(node.elseStatement.getFirstToken())],
 			)
 		}
 
 		if (node.parent && ts.isIfStatement(node.parent) && node.parent.elseStatement === node) {
 			// Delete " else " as in nested if-else
 			ranges.push(
-				[node.parent.thenStatement.getLastToken().end, _.first(ranges).pos],
+				[node.parent.thenStatement.getLastToken().end, first(ranges).pos],
 			)
 		}
 

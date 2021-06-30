@@ -1,4 +1,5 @@
-import * as _ from 'lodash'
+import isNumber from 'lodash/isNumber'
+import sortBy from 'lodash/sortBy'
 import * as vscode from 'vscode'
 
 export const deleteLeft = async () => {
@@ -29,7 +30,7 @@ export const deleteLeft = async () => {
 						prevLine = editor.document.lineAt(prevLine.lineNumber - 1)
 					}
 					const prevSpan = prevLine.text.match(/^(\s|\t)*/)[0]
-					const tabLong = editor.options.insertSpaces && _.isNumber(editor.options.tabSize) ? editor.options.tabSize : 1
+					const tabLong = editor.options.insertSpaces && isNumber(editor.options.tabSize) ? editor.options.tabSize : 1
 					if (thisSpan.length > prevSpan.length && cursor.active.character > tabLong) {
 						edit.delete(new vscode.Range(
 							cursor.active.translate({ characterDelta: -tabLong }),
@@ -142,8 +143,6 @@ export const deleteRight = async () => {
 }
 
 function getSortedSelections(editor: vscode.TextEditor) {
-	return _.chain(editor.selections)
-		.sortBy(cursor => Math.min(editor.document.offsetAt(cursor.active), editor.document.offsetAt(cursor.anchor)))
+	return sortBy(editor.selections, cursor => Math.min(editor.document.offsetAt(cursor.active), editor.document.offsetAt(cursor.anchor)))
 		.reverse()
-		.value()
 }

@@ -1,4 +1,9 @@
-import * as _ from 'lodash'
+import compact from 'lodash/compact'
+import trim from 'lodash/trim'
+import first from 'lodash/first'
+import last from 'lodash/last'
+import remove from 'lodash/remove'
+import defer from 'lodash/defer'
 import * as vscode from 'vscode'
 import * as ts from 'typescript'
 import { expandBlockSelectionForTypeScript, NodeRange } from './smartSelect'
@@ -249,7 +254,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 			} else { // In case of else-block
 				edit.insert(targetNodeRange.range.start, 'if () ' + getFullText(targetNodeRange) + ' else ')
 				const condition = targetNodeRange.range.start.translate({ characterDelta: 'if ('.length })
-				_.defer(() => {
+				defer(() => {
 					editor.selections = [new vscode.Selection(condition, condition)]
 				})
 			}
@@ -261,9 +266,9 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 		})
 		createAction = targetNodeRange => edit => {
 			const separatorPattern = /(?:;|,)$/
-			const separator = _.last(_.compact(childNodeRangeList.map(child => getFullText(child).match(separatorPattern)?.[0]))) ?? ''
+			const separator = last(compact(childNodeRangeList.map(child => getFullText(child).match(separatorPattern)?.[0]))) ?? ''
 			const lineFeedOrSpace = getLineFeedConditionally(targetNodeRange, ' ')
-			const fullText = _.trim(getFullText(targetNodeRange).replace(separatorPattern, ''))
+			const fullText = trim(getFullText(targetNodeRange).replace(separatorPattern, ''))
 			edit.insert(targetNodeRange.range.start, fullText + separator + lineFeedOrSpace)
 		}
 
@@ -310,7 +315,7 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 	}
 
 	// Remove empty text elements as it caused a wrong calculation in `getLineFeedConditionally`
-	_.remove(childNodeRangeList, item => item.node && ts.isJsxText(item.node) && item.node.containsOnlyTriviaWhiteSpaces)
+	remove(childNodeRangeList, item => item.node && ts.isJsxText(item.node) && item.node.containsOnlyTriviaWhiteSpaces)
 
 	if (childNodeRangeList.length === 0) {
 		return null
@@ -329,10 +334,10 @@ const createActionByNodeType = (parentNodeRange: NodeRange, editor: vscode.TextE
 	const lineMatchingNodeRangeList = childNodeRangeList.filter(item => currentLine.lineNumber >= item.range.start.line && currentLine.lineNumber <= item.range.end.line)
 	if (lineMatchingNodeRangeList.length > 0) {
 		if (currentLine.text.substring(0, editor.selection.active.character).trim().length === 0) {
-			return createAction(_.first(lineMatchingNodeRangeList))
+			return createAction(first(lineMatchingNodeRangeList))
 
 		} else if (currentLine.text.substring(editor.selection.active.character).trim().length === 0) {
-			return createAction(_.last(lineMatchingNodeRangeList))
+			return createAction(last(lineMatchingNodeRangeList))
 		}
 	}
 

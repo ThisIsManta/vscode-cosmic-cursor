@@ -1,5 +1,6 @@
 import * as fp from 'path'
-import * as _ from 'lodash'
+import findLast from 'lodash/findLast'
+import trimStart from 'lodash/trimStart'
 import * as vscode from 'vscode'
 import * as ts from 'typescript'
 
@@ -13,7 +14,7 @@ export const expandBlockSelection = (cursorPairHistory: Array<vscode.Selection>)
 	const matchingNodeRangeList = expandBlockSelectionForTypeScript(editor)
 
 	// Select the smallest range that is bigger than the current selection
-	const selectedNodeRange = _.findLast(matchingNodeRangeList, item => editor.selection.isEqual(item.range) === false)
+	const selectedNodeRange = findLast(matchingNodeRangeList, item => editor.selection.isEqual(item.range) === false)
 
 	if (!selectedNodeRange) {
 		return vscode.commands.executeCommand('editor.action.smartSelect.grow')
@@ -91,7 +92,7 @@ export class NodeRange {
 
 		// Trim the beginning white-spaces and new-lines for some ranges
 		const fullText = document.getText(this.range)
-		const trimText = _.trimStart(fullText)
+		const trimText = trimStart(fullText)
 		if (fullText.length !== trimText.length) {
 			this.range = new vscode.Range(
 				document.positionAt(document.offsetAt(this.range.start) + fullText.length - trimText.length),

@@ -1,4 +1,5 @@
-import * as _ from 'lodash'
+import first from 'lodash/first'
+import last from 'lodash/last'
 import * as vscode from 'vscode'
 
 const rsPairs = [
@@ -97,7 +98,7 @@ export const moveOrSelectCursorByWordLeft = (select: boolean) => async () => {
 
 		const wordList = splitWordsOrPairs(lineText, select)
 		if (wordList.length > 0) {
-			const lastWord = _.last(wordList)
+			const lastWord = last(wordList)
 			const lastLong = lastWord.length
 			const lastRank = lineText.lastIndexOf(lastWord)
 
@@ -139,7 +140,7 @@ export const moveOrSelectCursorByWordLeft = (select: boolean) => async () => {
 				}
 			}
 
-			const wordText = _.last(wordList)
+			const wordText = last(wordList)
 			const wordRank = lineText.lastIndexOf(wordText)
 
 			if (reQuotes.test(wordText) || rePairs.test(wordText)) {
@@ -180,7 +181,7 @@ export const moveOrSelectCursorByWordRight = (select: boolean) => async () => {
 					cursor.active,
 				))
 				const restList = splitWordsOrPairs(restText, select)
-				if (restList.length > 0 && restText.lastIndexOf(_.last(restList)) + _.last(restList).length === restText.length) {
+				if (restList.length > 0 && restText.lastIndexOf(last(restList)) + last(restList).length === restText.length) {
 					return true
 				}
 			}
@@ -208,7 +209,7 @@ export const moveOrSelectCursorByWordRight = (select: boolean) => async () => {
 				}
 			}
 
-			const wordText = _.first(wordList)
+			const wordText = first(wordList)
 			const wordRank = lineText.indexOf(wordText)
 
 			if (reQuotes.test(wordText) || rePairs.test(wordText)) {
