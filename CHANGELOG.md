@@ -1,3 +1,6 @@
+### 5.5.1
+- Fixed invalid installation.
+
 ### 5.5.0
 - Reduced start-up time.
 
