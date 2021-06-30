@@ -1,3 +1,6 @@
+### 5.5.0
+- Reduced start-up time.
+
 ### 5.4.0
 - Removed the keybinding for `smartDelete` command.
 - Amended `smartDuplicate` command so it support copying type annotations.
