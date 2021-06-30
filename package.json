@@ -1,108 +1,108 @@
 {
-    "name": "cosmic-cursor",
-    "displayName": "Manta's Cosmic Cursor",
-    "description": "Move cursor brilliantly.",
-    "version": "5.4.0",
-    "publisher": "thisismanta",
-    "categories": [
-        "Keymaps",
-        "Other"
-    ],
-    "keywords": [
-        "cursor",
-        "keybindings"
-    ],
-    "repository": {
-        "url": "https://github.com/ThisIsManta/vscode-cosmic-cursor"
-    },
-    "bugs": {
-        "url": "https://github.com/ThisIsManta/vscode-cosmic-cursor/issues"
-    },
-    "icon": "docs/logo.png",
-    "galleryBanner": {
-        "color": "#212121",
-        "theme": "dark"
-    },
-    "engines": {
-        "vscode": "^1.41.0"
-    },
-    "activationEvents": [
-        "*"
-    ],
-    "main": "./dist/extension",
-    "contributes": {
-        "keybindings": [
-            {
-                "command": "cosmicCursor.cursorUp",
-                "key": "ctrl+up",
-                "when": "editorTextFocus"
-            },
-            {
-                "command": "cosmicCursor.cursorDown",
-                "key": "ctrl+down",
-                "when": "editorTextFocus"
-            },
-            {
-                "command": "cosmicCursor.smartSelect.expand",
-                "key": "ctrl+shift+up",
-                "when": "editorTextFocus"
-            },
-            {
-                "command": "cosmicCursor.smartSelect.shrink",
-                "key": "ctrl+shift+down",
-                "when": "editorTextFocus"
-            },
-            {
-                "command": "cosmicCursor.smartDuplicate",
-                "key": "ctrl+d",
-                "when": "editorTextFocus && !editorReadonly"
-            },
-            {
-                "command": "cosmicCursor.cursorWordLeft",
-                "key": "ctrl+left",
-                "when": "editorTextFocus"
-            },
-            {
-                "command": "cosmicCursor.cursorWordLeftSelect",
-                "key": "ctrl+shift+left",
-                "when": "editorTextFocus"
-            },
-            {
-                "command": "cosmicCursor.cursorWordRight",
-                "key": "ctrl+right",
-                "when": "editorTextFocus"
-            },
-            {
-                "command": "cosmicCursor.cursorWordRightSelect",
-                "key": "ctrl+shift+right",
-                "when": "editorTextFocus"
-            },
-            {
-                "command": "cosmicCursor.deleteLeft",
-                "key": "backspace",
-                "when": "editorTextFocus && !editorReadonly"
-            },
-            {
-                "command": "cosmicCursor.deleteRight",
-                "key": "delete",
-                "when": "editorTextFocus && !editorReadonly"
-            }
-        ]
-    },
-    "scripts": {
-        "compile": "tsc --watch --project ./",
-        "vscode:prepublish": "tsc --skipLibCheck --project ./",
-        "preversion": "git push --dry-run origin master:master",
-        "version": "vsce publish",
-        "postversion": "git push --tags --quiet origin master:master"
-    },
-    "devDependencies": {
-        "@types/lodash": "^4.14.149",
-        "@types/node": "^13.8.0",
-        "vscode": "^1.1.36"
-    },
-    "dependencies": {
-        "lodash": "^4.17.15",
-        "typescript": "^3.8.3"
-    }
+	"name": "cosmic-cursor",
+	"displayName": "Manta's Cosmic Cursor",
+	"description": "Move cursor brilliantly.",
+	"version": "5.4.0",
+	"publisher": "thisismanta",
+	"categories": [
+		"Keymaps",
+		"Other"
+	],
+	"keywords": [
+		"cursor",
+		"keybindings"
+	],
+	"repository": {
+		"url": "https://github.com/ThisIsManta/vscode-cosmic-cursor"
+	},
+	"bugs": {
+		"url": "https://github.com/ThisIsManta/vscode-cosmic-cursor/issues"
+	},
+	"icon": "docs/logo.png",
+	"galleryBanner": {
+		"color": "#212121",
+		"theme": "dark"
+	},
+	"engines": {
+		"vscode": "^1.41.0"
+	},
+	"activationEvents": [
+		"*"
+	],
+	"main": "./dist/extension",
+	"contributes": {
+		"keybindings": [
+			{
+				"command": "cosmicCursor.cursorUp",
+				"key": "ctrl+up",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "cosmicCursor.cursorDown",
+				"key": "ctrl+down",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "cosmicCursor.smartSelect.expand",
+				"key": "ctrl+shift+up",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "cosmicCursor.smartSelect.shrink",
+				"key": "ctrl+shift+down",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "cosmicCursor.smartDuplicate",
+				"key": "ctrl+d",
+				"when": "editorTextFocus && !editorReadonly"
+			},
+			{
+				"command": "cosmicCursor.cursorWordLeft",
+				"key": "ctrl+left",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "cosmicCursor.cursorWordLeftSelect",
+				"key": "ctrl+shift+left",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "cosmicCursor.cursorWordRight",
+				"key": "ctrl+right",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "cosmicCursor.cursorWordRightSelect",
+				"key": "ctrl+shift+right",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "cosmicCursor.deleteLeft",
+				"key": "backspace",
+				"when": "editorTextFocus && !editorReadonly"
+			},
+			{
+				"command": "cosmicCursor.deleteRight",
+				"key": "delete",
+				"when": "editorTextFocus && !editorReadonly"
+			}
+		]
+	},
+	"scripts": {
+		"compile": "tsc --watch --project ./",
+		"vscode:prepublish": "tsc --skipLibCheck --project ./",
+		"preversion": "git push --dry-run origin master:master",
+		"version": "vsce publish",
+		"postversion": "git push --tags --quiet origin master:master"
+	},
+	"devDependencies": {
+		"@types/lodash": "^4.14.149",
+		"@types/node": "^13.8.0",
+		"vscode": "^1.1.36"
+	},
+	"dependencies": {
+		"lodash": "^4.17.15",
+		"typescript": "^3.8.3"
+	}
 }
