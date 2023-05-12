@@ -90,6 +90,11 @@
 				"command": "cosmicCursor.deleteRight",
 				"key": "delete",
 				"when": "editorTextFocus && !editorReadonly"
+			},
+			{
+				"key": "shift+delete",
+				"command": "editor.action.deleteLines",
+				"when": "editorTextFocus && !editorReadonly"
 			}
 		]
 	},

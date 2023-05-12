@@ -10,4 +10,5 @@
 |**Backspace**|Delete the character on the left of the cursor. If the cursor is in front of the first non-white-space character of the line, this will also delete the white-space characters till the beginning of the line.|
 |**Shift+Backspace**|Delete words according to JavaScript/TypeScript syntax.|
 |**Delete**|Delete the character on the right of the cursor. If the cursor is at the end of the line, this will also delete the white-space characters at the beginning of the next line; leaving only zero or one white-space as a bumper.|
+|**Shift+Delete**|Delete the select line(s).|
 |**Ctrl+D**|Duplicate the select syntax node or the current active line. The syntax node supports statements, object members, array members, call arguments, if/else-if/else clauses, switch-case clauses, and arithmetic/bitwise/logical binary operands in JavaScript/TypeScript/JSON for now.|
