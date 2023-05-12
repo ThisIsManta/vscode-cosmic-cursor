@@ -1,3 +1,6 @@
+### 5.5.2
+- Upgrade dependencies.
+
 ### 5.5.1
 - Fixed invalid installation.
 
