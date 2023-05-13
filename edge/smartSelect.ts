@@ -40,7 +40,7 @@ export const shrinkBlockSelection = (cursorPairHistory: Array<vscode.Selection>)
 	}
 }
 
-export const parseTypeScript = (document: vscode.TextDocument) => {
+export function parseTypeScript(document: vscode.TextDocument) {
 	if (document.languageId === 'json') {
 		return ts.parseJsonText(fp.basename(document.fileName), document.getText())
 	}
@@ -54,7 +54,7 @@ export const parseTypeScript = (document: vscode.TextDocument) => {
 	}
 }
 
-export const expandBlockSelectionForTypeScript = (editor: vscode.TextEditor) => {
+export function expandBlockSelectionForTypeScript(editor: vscode.TextEditor) {
 	const rootNode = parseTypeScript(editor.document)
 	if (!rootNode) {
 		return []
@@ -102,7 +102,7 @@ export class NodeRange {
 	}
 }
 
-const travel = (givenNode: ts.Node, document: vscode.TextDocument, selection: vscode.Selection, matchingNodeRangeList: Array<NodeRange> = []) => {
+function travel(givenNode: ts.Node, document: vscode.TextDocument, selection: vscode.Selection, matchingNodeRangeList: Array<NodeRange> = []) {
 	givenNode.forEachChild(childNode => {
 		const nodeRange = new NodeRange(childNode, document)
 

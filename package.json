@@ -57,11 +57,6 @@
 				"when": "editorTextFocus"
 			},
 			{
-				"command": "cosmicCursor.smartDuplicate",
-				"key": "ctrl+d",
-				"when": "editorTextFocus && !editorReadonly"
-			},
-			{
 				"command": "cosmicCursor.cursorWordLeft",
 				"key": "ctrl+left",
 				"when": "editorTextFocus"
