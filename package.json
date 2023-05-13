@@ -31,7 +31,7 @@
 		"npm": "9.5.1"
 	},
 	"activationEvents": [
-		"*"
+		"onStartupFinished"
 	],
 	"main": "dist/extension.js",
 	"contributes": {
@@ -98,7 +98,7 @@
 		"build": "esbuild edge/extension.ts --bundle --platform=node --outfile=dist/extension.js --external:vscode --external:typescript --format=cjs",
 		"watch": "npm run build -- --watch --sourcemap",
 		"vscode:prepublish": "npm run build -- --minify",
-		"version": "npx @vscode/vsce publish --allow-star-activation"
+		"version": "npx @vscode/vsce publish"
 	},
 	"devDependencies": {
 		"@thisismanta/semantic-version": "^5.0.2",
