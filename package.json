@@ -26,10 +26,6 @@
 	"engines": {
 		"vscode": "^1.73.0"
 	},
-	"volta": {
-		"node": "18.16.0",
-		"npm": "9.5.1"
-	},
 	"activationEvents": [
 		"onStartupFinished"
 	],
@@ -101,14 +97,15 @@
 		"version": "npx @vscode/vsce publish"
 	},
 	"devDependencies": {
-		"@thisismanta/semantic-version": "^5.0.2",
-		"@types/lodash": "^4.14.194",
-		"@types/node": ">=18.0.0",
+		"@thisismanta/semantic-version": "^8.0.0",
+		"@types/lodash": "^4.14.202",
+		"@types/node": ">=20.0.0",
 		"@types/vscode": "^1.73.0",
-		"esbuild": "^0.17.18",
+		"esbuild": "^0.20.0",
+		"lefthook": "^1.6.1",
 		"lodash": "^4.17.21"
 	},
 	"dependencies": {
-		"typescript": "^5.0.4"
+		"typescript": "^5.3.3"
 	}
 }
