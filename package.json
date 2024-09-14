@@ -95,7 +95,7 @@
 		"build": "esbuild edge/extension.ts --bundle --platform=node --outfile=dist/extension.js --external:vscode --external:typescript --format=cjs",
 		"watch": "npm run build -- --watch --sourcemap",
 		"vscode:prepublish": "npm run build -- --minify",
-		"version": "npx @vscode/vsce publish --pat $VSCE_PUBLISH_TOKEN"
+		"version": "npx @vscode/vsce publish"
 	},
 	"devDependencies": {
 		"@thisismanta/semantic-version": "^9.1.0",

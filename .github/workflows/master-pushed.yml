@@ -14,11 +14,10 @@ jobs:
         with:
           node-version-file: 'package.json'
           cache: npm
-          registry-url: 'https://registry.npmjs.org'
 
       - run: npm ci --ignore-scripts
 
       - run: npx auto-npm-version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          VSCE_PAT: ${{ secrets.VSCE_PUBLISH_TOKEN }}
