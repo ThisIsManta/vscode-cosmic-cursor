@@ -4,6 +4,7 @@
 	"description": "Move cursor brilliantly.",
 	"version": "6.0.1",
 	"publisher": "thisismanta",
+	"license": "MIT",
 	"categories": [
 		"Keymaps",
 		"Other"
@@ -31,6 +32,10 @@
 		"onStartupFinished"
 	],
 	"main": "dist/extension.js",
+	"files": [
+		"logo.png",
+		"dist/*.js"
+	],
 	"contributes": {
 		"keybindings": [
 			{
@@ -92,7 +97,7 @@
 	},
 	"scripts": {
 		"postinstall": "code --install-extension connor4312.esbuild-problem-matchers",
-		"build": "esbuild edge/extension.ts --bundle --platform=node --outfile=dist/extension.js --external:vscode --external:typescript --format=cjs",
+		"build": "esbuild edge/extension.ts --bundle --platform=node --outfile=dist/extension.js --external:vscode",
 		"watch": "npm run build -- --watch --sourcemap",
 		"vscode:prepublish": "npm run build -- --minify",
 		"version": "npx @vscode/vsce publish"
@@ -104,9 +109,7 @@
 		"@types/vscode": "^1.92.0",
 		"esbuild": "^0.23.1",
 		"lefthook": "^1.7.14",
-		"lodash": "^4.17.21"
-	},
-	"dependencies": {
+		"lodash": "^4.17.21",
 		"typescript": "^5.5.4"
 	}
 }
