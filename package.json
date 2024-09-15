@@ -29,7 +29,7 @@
 		"vscode": "^1.92.0"
 	},
 	"activationEvents": [
-		"onStartupFinished"
+		"*"
 	],
 	"main": "dist/extension.js",
 	"files": [
@@ -100,7 +100,7 @@
 		"build": "esbuild edge/extension.ts --bundle --platform=node --outfile=dist/extension.js --external:vscode",
 		"watch": "npm run build -- --watch --sourcemap",
 		"vscode:prepublish": "npm run build -- --minify",
-		"version": "npx @vscode/vsce publish"
+		"version": "npx @vscode/vsce publish --allow-star-activation"
 	},
 	"devDependencies": {
 		"@thisismanta/semantic-version": "^9.1.0",
