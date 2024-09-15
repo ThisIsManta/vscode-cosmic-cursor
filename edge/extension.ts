@@ -4,6 +4,7 @@ import { moveCursorUpOrDown } from './cursorMovementVertical'
 import { moveCursorLeft, moveCursorRight } from './cursorMovementHorizontal'
 import { deleteLeft, deleteRight } from './deletionBySpaces'
 import { expandSelection, shrinkSelection } from './selection'
+import { deleteLines } from './deletionByLines'
 import { smartDelete } from './smartDelete'
 
 export function activate(context: vscode.ExtensionContext) {
@@ -29,5 +30,11 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.deleteLeft', deleteLeft))
 	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.deleteRight', deleteRight))
+
+	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.deleteLines', deleteLines))
+	// context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cut', ))
+	// context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.copy', ))
+
+	// TODO: remove this
 	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.smartDelete', smartDelete))
 }

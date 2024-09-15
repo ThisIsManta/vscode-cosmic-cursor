@@ -89,8 +89,13 @@
 				"when": "editorTextFocus && !editorReadonly"
 			},
 			{
+				"command": "cosmicCursor.deleteLines",
 				"key": "shift+delete",
-				"command": "editor.action.deleteLines",
+				"when": "editorTextFocus && !editorReadonly"
+			},
+			{
+				"command": "cosmicCursor.smartDelete",
+				"key": "shift+backspace",
 				"when": "editorTextFocus && !editorReadonly"
 			}
 		]
