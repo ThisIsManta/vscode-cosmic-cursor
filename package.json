@@ -49,16 +49,6 @@
 				"when": "editorTextFocus"
 			},
 			{
-				"command": "cosmicCursor.smartSelect.expand",
-				"key": "ctrl+shift+up",
-				"when": "editorTextFocus"
-			},
-			{
-				"command": "cosmicCursor.smartSelect.shrink",
-				"key": "ctrl+shift+down",
-				"when": "editorTextFocus"
-			},
-			{
 				"command": "cosmicCursor.cursorWordLeft",
 				"key": "ctrl+left",
 				"when": "editorTextFocus"
@@ -76,6 +66,16 @@
 			{
 				"command": "cosmicCursor.cursorWordRightSelect",
 				"key": "ctrl+shift+right",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "cosmicCursor.selectExpand",
+				"key": "ctrl+shift+up",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "cosmicCursor.selectShrink",
+				"key": "ctrl+shift+down",
 				"when": "editorTextFocus"
 			},
 			{

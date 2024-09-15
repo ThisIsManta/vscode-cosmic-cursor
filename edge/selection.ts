@@ -1,17 +1,17 @@
-import * as fp from 'path'
 import findLast from 'lodash/findLast'
 import trimStart from 'lodash/trimStart'
 import * as vscode from 'vscode'
 import * as ts from 'typescript'
+import { parseTypeScript } from './utility'
 
-export const expandBlockSelection = (cursorPairHistory: Array<vscode.Selection>) => () => {
+export function expandSelection(cursorPairHistory: Array<vscode.Selection>) {
 	const editor = vscode.window.activeTextEditor
 
 	if (cursorPairHistory.length === 0) {
 		cursorPairHistory.push(editor.selection)
 	}
 
-	const matchingNodeRangeList = expandBlockSelectionForTypeScript(editor)
+	const matchingNodeRangeList = expandSelectionForTypeScript(editor)
 
 	// Select the smallest range that is bigger than the current selection
 	const selectedNodeRange = findLast(matchingNodeRangeList, item => editor.selection.isEqual(item.range) === false)
@@ -28,7 +28,7 @@ export const expandBlockSelection = (cursorPairHistory: Array<vscode.Selection>)
 	cursorPairHistory.push(newSelection)
 }
 
-export const shrinkBlockSelection = (cursorPairHistory: Array<vscode.Selection>) => () => {
+export function shrinkSelection(cursorPairHistory: Array<vscode.Selection>) {
 	const editor = vscode.window.activeTextEditor
 
 	while (cursorPairHistory.length > 0) {
@@ -40,21 +40,7 @@ export const shrinkBlockSelection = (cursorPairHistory: Array<vscode.Selection>)
 	}
 }
 
-export function parseTypeScript(document: vscode.TextDocument) {
-	if (document.languageId === 'json') {
-		return ts.parseJsonText(fp.basename(document.fileName), document.getText())
-	}
-
-	if (/^javascript(react)?$/.test(document.languageId)) {
-		return ts.createSourceFile(fp.basename(document.fileName), document.getText(), ts.ScriptTarget.ESNext, true, document.languageId.endsWith('react') ? ts.ScriptKind.JSX : ts.ScriptKind.JS)
-	}
-
-	if (/^typescript(react)?$/.test(document.languageId)) {
-		return ts.createSourceFile(fp.basename(document.fileName), document.getText(), ts.ScriptTarget.ESNext, true, document.languageId.endsWith('react') ? ts.ScriptKind.TSX : ts.ScriptKind.TS)
-	}
-}
-
-export function expandBlockSelectionForTypeScript(editor: vscode.TextEditor) {
+export function expandSelectionForTypeScript(editor: vscode.TextEditor) {
 	const rootNode = parseTypeScript(editor.document)
 	if (!rootNode) {
 		return []

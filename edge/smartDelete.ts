@@ -5,7 +5,7 @@ import isObject from 'lodash/isObject'
 import isArrayLike from 'lodash/isArrayLike'
 import * as ts from 'typescript'
 import * as vscode from 'vscode'
-import { parseTypeScript } from './smartSelect'
+import { parseTypeScript } from './utility'
 
 export const smartDelete = async () => {
 	const editor = vscode.window.activeTextEditor
@@ -65,22 +65,6 @@ export const smartDelete = async () => {
 			edit.delete(range)
 		}
 	})
-}
-
-function getScriptKind(document: vscode.TextDocument) {
-	if (document.languageId === 'json') {
-		return ts.ScriptKind.JSON
-	}
-
-	if (/^javascript(react)?$/.test(document.languageId)) {
-		return document.languageId.endsWith('react') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
-	}
-
-	if (/^typescript(react)?$/.test(document.languageId)) {
-		return document.languageId.endsWith('react') ? ts.ScriptKind.JSX : ts.ScriptKind.JS
-	}
-
-	return null
 }
 
 function isNodeArray(node: any): node is ts.NodeArray<ts.Node> {

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 
-export const moveCursor = (direction: number) => () => {
+export function moveCursorUpOrDown(direction: number) {
 	const editor = vscode.window.activeTextEditor
 	let lineRank = editor.selection.active.line
 

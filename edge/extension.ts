@@ -1,14 +1,14 @@
 import * as vscode from 'vscode'
 
-import { moveCursor } from './moveCursor'
-import { expandBlockSelection, shrinkBlockSelection } from './smartSelect'
-import { moveOrSelectCursorByWordLeft, moveOrSelectCursorByWordRight } from './moveOrSelectCursorByWord'
-import { deleteLeft, deleteRight } from './delete'
+import { moveCursorUpOrDown } from './cursorMovementVertical'
+import { moveCursorLeft, moveCursorRight } from './cursorMovementHorizontal'
+import { deleteLeft, deleteRight } from './deletionBySpaces'
+import { expandSelection, shrinkSelection } from './selection'
 import { smartDelete } from './smartDelete'
 
 export function activate(context: vscode.ExtensionContext) {
-	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorUp', moveCursor(-1)))
-	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorDown', moveCursor(+1)))
+	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorUp', () => moveCursorUpOrDown(-1)))
+	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorDown', () => moveCursorUpOrDown(+1)))
 
 	let cursorPairHistory: Array<vscode.Selection> = []
 
@@ -18,14 +18,14 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}))
 
-	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.smartSelect.expand', expandBlockSelection(cursorPairHistory)))
-	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.smartSelect.shrink', shrinkBlockSelection(cursorPairHistory)))
+	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordLeft', () => moveCursorLeft(false)))
+	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordLeftSelect', () => moveCursorLeft(true)))
 
-	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordLeft', moveOrSelectCursorByWordLeft(false)))
-	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordLeftSelect', moveOrSelectCursorByWordLeft(true)))
+	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordRight', () => moveCursorRight(false)))
+	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordRightSelect', () => moveCursorRight(true)))
 
-	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordRight', moveOrSelectCursorByWordRight(false)))
-	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.cursorWordRightSelect', moveOrSelectCursorByWordRight(true)))
+	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.selectExpand', () => expandSelection(cursorPairHistory)))
+	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.selectShrink', () => shrinkSelection(cursorPairHistory)))
 
 	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.deleteLeft', deleteLeft))
 	context.subscriptions.push(vscode.commands.registerCommand('cosmicCursor.deleteRight', deleteRight))

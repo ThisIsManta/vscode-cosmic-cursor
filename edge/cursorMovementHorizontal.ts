@@ -79,7 +79,7 @@ const splitWordsOrPairs = (text: string, excludePairs: boolean) => {
 	return (text.match(reUnicodeWord) || []).filter(word => !(excludePairs && rePairs.test(word)))
 }
 
-const newCursorOrSelection = (cursor: vscode.Selection, lineRank: number, charRank: number, select: boolean) => {
+function newCursorOrSelection(cursor: vscode.Selection, lineRank: number, charRank: number, select: boolean) {
 	const active = new vscode.Position(lineRank, charRank)
 	return new vscode.Selection(
 		select ? cursor.anchor : active,
@@ -87,7 +87,7 @@ const newCursorOrSelection = (cursor: vscode.Selection, lineRank: number, charRa
 	)
 }
 
-export const moveOrSelectCursorByWordLeft = (select: boolean) => async () => {
+export async function moveCursorLeft(select: boolean) {
 	const editor = vscode.window.activeTextEditor
 	editor.selections = editor.selections.map(cursor => {
 		let lineRank = cursor.active.line
@@ -154,7 +154,7 @@ export const moveOrSelectCursorByWordLeft = (select: boolean) => async () => {
 	})
 }
 
-export const moveOrSelectCursorByWordRight = (select: boolean) => async () => {
+export async function moveCursorRight(select: boolean) {
 	const editor = vscode.window.activeTextEditor
 	editor.selections = editor.selections.map(cursor => {
 		let lineRank = cursor.active.line

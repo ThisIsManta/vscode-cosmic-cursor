@@ -2,7 +2,7 @@ import isNumber from 'lodash/isNumber'
 import sortBy from 'lodash/sortBy'
 import * as vscode from 'vscode'
 
-export const deleteLeft = async () => {
+export async function deleteLeft() {
 	const editor = vscode.window.activeTextEditor
 	return editor.edit(edit => {
 		for (const cursor of getSortedSelections(editor)) {
@@ -76,7 +76,7 @@ export const deleteLeft = async () => {
 	})
 }
 
-export const deleteRight = async () => {
+export async function deleteRight() {
 	const editor = vscode.window.activeTextEditor
 	return editor.edit(edit => {
 		for (const cursor of getSortedSelections(editor)) {
