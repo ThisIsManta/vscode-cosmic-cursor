@@ -36,41 +36,49 @@
 			{
 				"command": "cosmicCursor.cursorUp",
 				"key": "ctrl+up",
+				"mac": "cmd+up",
 				"when": "editorTextFocus"
 			},
 			{
 				"command": "cosmicCursor.cursorDown",
 				"key": "ctrl+down",
+				"mac": "cmd+down",
 				"when": "editorTextFocus"
 			},
 			{
 				"command": "cosmicCursor.smartSelect.expand",
 				"key": "ctrl+shift+up",
+				"mac": "cmd+shift+up",
 				"when": "editorTextFocus"
 			},
 			{
 				"command": "cosmicCursor.smartSelect.shrink",
 				"key": "ctrl+shift+down",
+				"mac": "cmd+shift+down",
 				"when": "editorTextFocus"
 			},
 			{
 				"command": "cosmicCursor.cursorWordLeft",
 				"key": "ctrl+left",
-				"when": "editorTextFocus"
-			},
-			{
-				"command": "cosmicCursor.cursorWordLeftSelect",
-				"key": "ctrl+shift+left",
+				"mac": "cmd+left",
 				"when": "editorTextFocus"
 			},
 			{
 				"command": "cosmicCursor.cursorWordRight",
 				"key": "ctrl+right",
+				"mac": "cmd+right",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "cosmicCursor.cursorWordLeftSelect",
+				"key": "ctrl+shift+left",
+				"mac": "cmd+shift+left",
 				"when": "editorTextFocus"
 			},
 			{
 				"command": "cosmicCursor.cursorWordRightSelect",
 				"key": "ctrl+shift+right",
+				"mac": "cmd+shift+right",
 				"when": "editorTextFocus"
 			},
 			{
@@ -84,8 +92,8 @@
 				"when": "editorTextFocus && !editorReadonly"
 			},
 			{
-				"key": "shift+delete",
 				"command": "editor.action.deleteLines",
+				"key": "shift+delete",
 				"when": "editorTextFocus && !editorReadonly"
 			}
 		]
