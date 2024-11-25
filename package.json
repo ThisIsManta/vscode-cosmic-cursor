@@ -24,7 +24,7 @@
 		"theme": "dark"
 	},
 	"engines": {
-		"node": ">=18.0.0",
+		"node": ">=20.0.0",
 		"vscode": "^1.92.0"
 	},
 	"activationEvents": [
@@ -99,14 +99,14 @@
 	},
 	"devDependencies": {
 		"@thisismanta/semantic-version": "^9.1.0",
-		"@types/lodash": "^4.17.7",
-		"@types/node": "^18.0.0",
+		"@types/lodash": "^4.17.13",
+		"@types/node": "^20.0.0",
 		"@types/vscode": "^1.92.0",
-		"esbuild": "^0.23.1",
-		"lefthook": "^1.7.14",
+		"esbuild": "^0.24.0",
+		"lefthook": "^1.8.4",
 		"lodash": "^4.17.21"
 	},
 	"dependencies": {
-		"typescript": "^5.5.4"
+		"typescript": "^5.7.2"
 	}
 }
