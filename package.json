@@ -36,49 +36,49 @@
 			{
 				"command": "cosmicCursor.cursorUp",
 				"key": "ctrl+up",
-				"mac": "cmd+up",
+				"mac": "alt+up",
 				"when": "editorTextFocus"
 			},
 			{
 				"command": "cosmicCursor.cursorDown",
 				"key": "ctrl+down",
-				"mac": "cmd+down",
+				"mac": "alt+down",
 				"when": "editorTextFocus"
 			},
 			{
 				"command": "cosmicCursor.smartSelect.expand",
 				"key": "ctrl+shift+up",
-				"mac": "cmd+shift+up",
+				"mac": "alt+shift+up",
 				"when": "editorTextFocus"
 			},
 			{
 				"command": "cosmicCursor.smartSelect.shrink",
 				"key": "ctrl+shift+down",
-				"mac": "cmd+shift+down",
+				"mac": "alt+shift+down",
 				"when": "editorTextFocus"
 			},
 			{
 				"command": "cosmicCursor.cursorWordLeft",
 				"key": "ctrl+left",
-				"mac": "cmd+left",
+				"mac": "alt+left",
 				"when": "editorTextFocus"
 			},
 			{
 				"command": "cosmicCursor.cursorWordRight",
 				"key": "ctrl+right",
-				"mac": "cmd+right",
+				"mac": "alt+right",
 				"when": "editorTextFocus"
 			},
 			{
 				"command": "cosmicCursor.cursorWordLeftSelect",
 				"key": "ctrl+shift+left",
-				"mac": "cmd+shift+left",
+				"mac": "alt+shift+left",
 				"when": "editorTextFocus"
 			},
 			{
 				"command": "cosmicCursor.cursorWordRightSelect",
 				"key": "ctrl+shift+right",
-				"mac": "cmd+shift+right",
+				"mac": "alt+shift+right",
 				"when": "editorTextFocus"
 			},
 			{
